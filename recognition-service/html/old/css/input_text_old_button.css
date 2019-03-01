@@ -1,0 +1,163 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  background: #444;
+}
+
+body {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+#prompt-form {
+  display: inline-block;
+  width: 600px;
+  vertical-align: top;
+  margin: 70px 0px;
+}
+
+#prompt-form-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+#prompt-form-container:before {
+  display: inline-block;
+  height: 100%;
+  content: '';
+  vertical-align: middle;
+}
+
+#prompt-form input[type="text"] {
+  display: block;
+  margin: 0px 0px 10px 0px;
+  height: 100px;
+  width: 600px;
+  font-size: 4em;
+  font-family: "Futura", sans-serif;
+  text-align: center;
+}
+
+#prompt-message {
+  font-size: 4em;
+  margin: 0px 0px 20px;
+  font-weight: bold;
+  font-family: "Futura", sans-serif;
+  color: white;
+  padding: 0px 0px 10px 0px;
+  vertical-align: middle;
+}
+
+#prompt-form input[type="number"] {
+    line-height: 30px;
+    display: block;
+    height: 100px;
+    width: 400px;
+    margin: 0px 100px 10px 100px;
+    font-size: 4em;
+    font-family: "Futura", sans-serif;
+    text-align: center;
+    vertical-align:middle;
+}
+#prompt-form input[type="number"]::-webkit-inner-spin-button { 
+    cursor:pointer;
+    display:block;
+    width:8px;
+    color: #333;
+    text-align:center;
+    position:relative;
+}
+
+#prompt-form input[type="number"]:hover::-webkit-inner-spin-button { 
+    background: #eee 50% 50%;  
+    width: 14px;
+    height: 14px;
+    padding: 4px;
+    position: relative;
+    right: 4px;
+    border-radius: 28px;
+}
+
+.container {
+  height: 100%;
+  min-height: 100%;
+  margin: 0 auto;
+}
+
+.button-wrap {
+  position: relative;
+  text-align: center;
+  top: 50%;
+  margin-top: -2.5em;
+}
+@media (max-width: 40em) {
+  .button-wrap {
+    margin-top: -1.5em;
+  }
+}
+
+.button-label {
+  display: inline-block;
+  padding: 1em 2em;
+  margin: 3em 3em;
+  cursor: pointer;
+  color: #292929;
+  border-radius: 0.25em;
+  background: #efefef;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.button-label h1 {
+  font-size: 3em;
+  font-family: "Futura", sans-serif;
+}
+.button-label:hover {
+  background: #4183D7;
+  color: #101010;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.32);
+}
+.button-label:active {
+  -webkit-transform: translateY(2px);
+          transform: translateY(2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), inset 0px -1px 0 rgba(0, 0, 0, 0.22);
+}
+@media (max-width: 40em) {
+  .button-label {
+    padding: 0em 1em 3px;
+    margin: 0.25em;
+  }
+}
+
+#yes-button:checked + .button-label {
+  background: #4183D7;
+  color: #efefef;
+}
+#yes-button:checked + .button-label:hover {
+  background: #4183D7;
+  color: #e2e2e2;
+}
+
+.hidden {
+  display: none;
+}
+
+#prompt-form label{	
+    display: inline-block;
+    padding: 10px;
+}

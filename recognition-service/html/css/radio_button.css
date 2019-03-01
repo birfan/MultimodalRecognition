@@ -1,0 +1,88 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  background: #444;
+}
+
+body {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+#prompt-form {
+  display: inline-block;
+  width: 800px;
+  vertical-align: top;
+  margin:150px 0px;
+}
+
+#prompt-form-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+#prompt-form-container:before {
+  display: inline-block;
+  height: 100%;
+  content: '';
+  vertical-align: middle;
+}
+
+#prompt-message {
+  font-size: 4em;
+  margin: 0px 0px 20px;
+  font-weight: bold;
+  font-family: "Futura", sans-serif;
+  color: white;
+  padding: 0px 0px 10px 0px;
+  vertical-align: middle;
+}
+
+.button {
+  display: inline-block;
+  padding: 15px 30px;
+  margin:1em 2em;
+  font-size: 3em;
+  font-family: "Futura", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #292929;
+  background-color: #efefef;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px 3px;
+  -webkit-transition: 0.3s;
+  -moz-transition: 0.3s;
+  transition: 0.3s;
+    -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+.button:active {
+  background-color: #4183D7;
+  box-shadow: 0 5px 3px;
+  -webkit-transform: translateY(4px);
+  transform: translateY(4px);
+  -moz-transform: translateY(4px);
+}
+.hidden {
+  display: none;
+}
+
+

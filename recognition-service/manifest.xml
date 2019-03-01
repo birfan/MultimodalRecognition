@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package uuid="recognition-service" version="0.0.1">
+ <names>
+  <name lang="en_US">recognition-service</name>
+ </names>
+ <descriptions>
+  <description lang="en_US">Demo of face, age, gender and height recognition</description>
+ </descriptions>
+ <supportedLanguages>
+  <language>en_US</language>
+  <language>es_US</language>
+  <language>es_ES</language>
+ </supportedLanguages>
+ <descriptionLanguages>
+  <language>en_US</language>
+  <language>es_US</language>
+  <language>es_ES</language>
+ </descriptionLanguages>
+ <contents/>
+ <requirements>
+  <naoqiRequirement minVersion="2.1"/>
+  <robotRequirement/>
+ </requirements>
+ <services>
+  <service autorun="true" name="RecognitionService" execStart="/usr/bin/python2 scripts/RecognitionService.py"/>
+ </services>
+</package>
