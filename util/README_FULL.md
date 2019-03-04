@@ -1,8 +1,6 @@
-Instructions on how to make RecognitionMemory work on Nao/Pepper:
+# Instructions on how to make RecognitionMemory work on Nao/Pepper:
 
-=====================================================
-
-NAOqi FOR OpenNAO:
+## NAOqi FOR OpenNAO:
 
 
 *   Download OpenNAO OS VirtualBox and C++ NAOqi cross toolchain for Linux 32 from Software (OR use the libnaoqi_files folder provided instead of the toolchain) in 
@@ -14,7 +12,7 @@ NAOqi FOR OpenNAO:
 *   Setup OpenNAO using VirtualBox
 
 
-CONFIGURE GCC TO C++11 and C++14: 
+## CONFIGURE GCC TO C++11 and C++14: 
 
 
 *    In OpenNAO:
@@ -90,7 +88,7 @@ On robot:
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/nao/dev/src/lib
 ```
 
-UPDATE NUMPY:
+## UPDATE NUMPY:
 
 On OpenNAO:
 
@@ -131,7 +129,7 @@ On PC:
 
 Example path_to_folder: /home/nao/dev/src/pepper/
 
-INSTALL PYAGRUM (requires cmake >=3.1.0, numpy >=2.8.1, gcc>= 5.3.0)
+## INSTALL PYAGRUM (requires cmake >=3.1.0, numpy >=2.8.1, gcc>= 5.3.0)
 
 On OpenNao:
 
@@ -177,7 +175,7 @@ On robot:
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path_to_folder
 ```
 
-UPDATE ALFACEDETECTION LIBRARY TO RECOGNISE/LEARN FACES FROM FILE:
+## UPDATE ALFACEDETECTION LIBRARY TO RECOGNISE/LEARN FACES FROM FILE:
 
 On PC:
 
@@ -208,6 +206,6 @@ On robot:
     $ nao restart
 ```
 
-NOTE: THE COMPILED VERSION OF PANDAS, PYTZ AND PYAGRUM IS IN UTIL FOLDER. The folders are compiled for NAOqi "2.5.5.5" which has numpy version "1.8.1", pandas version "0.20.1", pytz version "2017.2", pyAgrum version "0.11.2.9".
+**NOTE: THE COMPILED VERSION OF PANDAS, PYTZ AND PYAGRUM IS IN UTIL FOLDER. The folders are compiled for NAOqi "2.5.5.5" which has numpy version "1.8.1", pandas version "0.20.1", pytz version "2017.2", pyAgrum version "0.11.2.9".**
 
 

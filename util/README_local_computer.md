@@ -1,5 +1,4 @@
-Install libraries on local computer (Ubuntu 16.04):
-===============================================
+# Install libraries on local computer (Ubuntu 16.04):
 
 * python version: 2.7.12
 

@@ -1,6 +1,4 @@
-Instructions on installing libraries for RecognitionMemory on Nao/Pepper:
-
-=====================================================
+# Instructions on installing libraries for RecognitionMemory on Nao/Pepper:
 
 Example path_to_folder: /home/nao/dev/lib/
 
@@ -54,7 +52,7 @@ On robot:
     $ nao restart
 ```
 
-UPDATE ALFACEDETECTION LIBRARY TO RECOGNISE/LEARN FACES FROM FILE:
+## UPDATE ALFACEDETECTION LIBRARY TO RECOGNISE/LEARN FACES FROM FILE:
 
 On PC:
 
@@ -85,7 +83,7 @@ On robot:
     $ nao restart
 ```
 
-NOTE: THE COMPILED VERSION OF PANDAS, PYTZ AND PYAGRUM IS IN UTIL FOLDER. The folders are compiled for NAOqi "2.5.5.5" which has numpy version "1.8.1", pandas version "0.20.1", pytz version "2017.2", pyAgrum version "0.11.2.9".
+**NOTE: THE COMPILED VERSION OF PANDAS, PYTZ AND PYAGRUM IS IN UTIL FOLDER. The folders are compiled for NAOqi "2.5.5.5" which has numpy version "1.8.1", pandas version "0.20.1", pytz version "2017.2", pyAgrum version "0.11.2.9".**
 
 
 
