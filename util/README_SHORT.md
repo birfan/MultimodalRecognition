@@ -44,7 +44,7 @@ On robot:
 
 ```
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path_to_folder
-
+```
 
 *   Save and close the file, and restart NAOqi
 
