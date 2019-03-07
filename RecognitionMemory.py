@@ -3160,8 +3160,8 @@ class RecogniserBN:
         """Load sentences for recognition feedbacks."""
         self.lookAtTablet = "Hello there, could you look at the tablet "
         self.pleasePhrase = "please?"
-        self.enterName = "and enter your id please?"
-        self.unknownPerson = "Oh I'm sorry, I couldn't recognise who you are! Could you enter your id on the tablet please?"
+        self.enterName = "and enter your name please?"
+        self.unknownPerson = "Oh I'm sorry, I couldn't recognise who you are! Could you enter your name on the tablet please?"
         self.askForIdentityConfirmal = "Hello XX, it is nice to see you again! Could you confirm that it is you please?"   
         self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Welcome back XX!", "You look different today XX, is it a new haircut?"]
         self.registrationPhrase = "Hello XX, nice to meet you!"

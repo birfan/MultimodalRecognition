@@ -1,5 +1,7 @@
 # Instructions on how to make RecognitionMemory work on Nao/Pepper:
 
+Example path\_to\_folder: /home/nao/dev/lib/
+
 ## NAOqi FOR OpenNAO:
 
 
@@ -12,7 +14,7 @@
 *   Setup OpenNAO using VirtualBox
 
 
-## CONFIGURE GCC TO C++11 and C++14: 
+## CONFIGURE GCC TO C++11 and C++14: (C++17 is not supported)
 
 
 *    In OpenNAO:
@@ -55,16 +57,8 @@ On OpenNAO:
     $ export "LD_LIBRARY_PATH=/usr/local/lib"
 ```
 
-On robot:
+**Check the C++ version of your robot, if it is below libstdc++.so.6.0.21, update your C++ libraries as below.**
 
-*   Change the name of the libstdc++.so files
-
-```
-    $ mkdir dev && cd dev
-
-    $ mkdir bin && mkdir lib
-
-```
 
 On OpenNAO:
 
@@ -73,7 +67,7 @@ On OpenNAO:
 ```
     $ cd /usr/local/lib
 
-    $ scp libstdc++.so* nao@robotIP:/home/nao/dev/src/lib
+    $ scp libstdc++.so* nao@robotIP:path_to_folder
 ```
 
 On robot:
@@ -85,7 +79,7 @@ On robot:
 *   Add the following line at the bottom
 
 ```
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/nao/dev/src/lib
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path_to_folder
 ```
 
 ## UPDATE NUMPY:
@@ -119,15 +113,15 @@ On PC:
     $ scp -P 2222 -r nao@localhost:/usr/lib/python2.7/site-packages/pytz .
     $ scp -P 2222 -r nao@localhost:/usr/lib/python2.7/site-packages/numpy .
 ```
-*   Copy the folders from pc to the robot under the source folder of the code:
+*   Copy the folders from pc to the robot under the source folder of the code.
+The stk folder is given in compiled libraries, which is NAOqi helper script and it does not need compiling.
 
 ```
     $ scp -r pandas/ nao@ROBOT_IP:path_to_folder
     $ scp -r pytz/ nao@ROBOT_IP:path_to_folder
     $ scp -r numpy/ nao@ROBOT_IP:path_to_folder
+    $ scp -r stk/ nao@ROBOT_IP:path_to_folder
 ```
-
-Example path_to_folder: /home/nao/dev/src/pepper/
 
 ## INSTALL PYAGRUM (requires cmake >=3.1.0, numpy >=2.8.1, gcc>= 5.3.0)
 
@@ -172,16 +166,16 @@ On robot:
 *   Add the following line at the bottom
 
 ```
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path_to_folder
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path_to_folder/pyAgrum
 ```
 
 ## UPDATE ALFACEDETECTION LIBRARY TO RECOGNISE/LEARN FACES FROM FILE:
 
 On PC:
 
-*   Download the ALFaceDetection library according to the version of your robot from: http://protolab.aldebaran.com:9000/protolab/facedetection_custom/tree/master
+*   The compiled libraries for Naoqi (libfacedetection\_2\_4\_2\_25\_nao.so, libfacedetection\_2\_4\_2\_26\_pepper.so, libfacedetection\_2\_5\_2\_44\_pepper.so) are under util folder. If your robot requires another Naoqi version, you can download the ALFaceDetection library according to the version of your robot from: http://protolab.aldebaran.com:9000/protolab/facedetection_custom/tree/master
 
-*   Send the library and loadCustomFaceLibrary.py file to the robot to /home/nao/dev/lib folder (NOTE: CHANGE THE face_lib_file = "/home/nao/dev/lib/libfacedetection_2_5_2_44_pepper.so" LINE IN loadCustomFileLibrary.py file according to your robot)
+*   Send the library and loadCustomFaceLibrary.py file to the robot to /home/nao/dev/lib folder (NOTE: CHANGE THE face_lib_file = "path\_to\_folder/libfacedetection\_2\_5\_2\_44\_pepper.so" LINE IN loadCustomFileLibrary.py file according to your robot)
 
 ```
     $ scp -r libfacedetection_2_5_2_44_pepper.so nao@ROBOT_IP:/home/nao/dev/lib/

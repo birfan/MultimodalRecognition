@@ -55,7 +55,7 @@ class RecognitionModule(object):
         self.person = ["","","",0,0,[]]
         self.counter = 0
         self.answer_counter = 0
-        self.recog_folder = "Demo_UK_Robotics/"
+        self.recog_folder = "Experiment/"
         self.face_db = "faceDB"
         
         self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
@@ -260,7 +260,7 @@ class RecognitionModule(object):
             self.RB.resetFaceDetectionDB()
            
         # NOTE: Uncomment this to clean the files and face recognition database
-#         self.cleanDB()
+        # self.cleanDB()
 
         self.loadDB(self.RB.db_file)
         try:

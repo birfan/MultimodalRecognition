@@ -16,7 +16,34 @@ The *recognitionModule.py* contains the RecognitionModule which allows online us
 
 Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, Tony Belpaeme, 2018, "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction Social Robots in the Wild workshop.
 
-*util* folder contains instructions to install libraries necessary for RecognitionMemory and the compiled libraries for NAOqi.
+*util* folder contains instructions to install libraries necessary for RecognitionMemory and the compiled libraries for NAOqi. Use README\_SHORT instructions to use the already compiled libraries provided in the folder (works for both Naoqi 2.4 and 2.5), otherwise, you can compile your libraries according to README\_FULL instructions.
+
+## Installation
+
+* Install compiled libraries to the robot using README\_SHORT file in util folder.
+
+* Install RecognitionService module to the robot according to README file in recognition-service module.
+
+* Send the recognition files to path\_to\_folder (same as the one in README\_SHORT file)
+
+```
+    $ scp recognitionModule.py nao@ROBOT_IP:path_to_folder
+    $ scp RecognitionMemory.py nao@ROBOT_IP:path_to_folder
+```
+
+## Usage
+
+Start the code on the robot:
+
+```
+    $ mkdir Experiment
+    $ cd path_to_folder
+    $ python recognitionModule.py
+
+```
+**NOTE: If it is the first time running the code, uncomment line 263. Then comment it for the next times.**
+
+Touch the left hand of Pepper robot to start the code.
 
 ## License
 
