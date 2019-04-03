@@ -34,6 +34,7 @@ import sys
 import os
 import os.path
 import shutil
+from distutils.dir_util import copy_tree # copy directory to another
     
 from datetime import datetime
 from datetime import date
@@ -92,12 +93,15 @@ class RecogniserBN:
         self.recog_file = "RecogniserBN.bif" # file for saving the bayesian network 
         self.recogniser_csv_file = "RecogniserBN.csv" # file for recording the evidence from the modalities (for registered users) and the actual identity of the user
         self.initial_recognition_file = "InitialRecognition.csv" # file for recording the initial evidence (before the user registers if not registered or the same evidence as RecogniserBN.csv) from the modalities and the estimated identity of the user
-        self.analysis_file = "AnalysisFolder/Analysis.json" # file for recording all the values of the recognition (not used, slows the system)
-        self.comparison_file = "AnalysisFolder/Comparison.csv" # file for comparing the recognition of face and network, and the quality of estimation
+        self.analysis_dir = "Analysis/"
+        self.analysis_file = self.analysis_dir + "Analysis.json" # file for recording all the values of the recognition (not used, slows the system)
+        self.comparison_file = self.analysis_dir + "Comparison.csv" # file for comparing the recognition of face and network, and the quality of estimation
         self.db_file = "db.csv" # database file
         self.stats_file = "stats.csv" # statistics file
         self.conf_matrix_file = "confusionMatrix.csv" # confusion matrix
         self.image_save_dir = "images/" # images directory
+        self.previous_files_dir = "LastSaved/" # contains the recognition from the previous recognition
+        self.faceDB = "faceDB"
         """END OF FILES"""
         
         self.node_names = ["I", "F", "G", "A", "H", "T"] # 'I' for identity, 'F' for face, 'G' for gender, 'H' for height, 'T' for time of interaction. Don't change the structure, i.e. if a new parameter is to be added, add it to the end of the list
@@ -1141,7 +1145,7 @@ class RecogniserBN:
         Comparison file is saved at this stage.
         IMPORTANT: call startRecognition before calling this function, and then ask for name from the person"""
         c_time_t = time.time()
-        
+        self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
         name = self.setPersonIdentity(isRegistered = self.isRegistered, p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
         
         if self.isMemoryRobot:
@@ -1354,6 +1358,7 @@ class RecogniserBN:
         self.discarded_data = []
         isPrevSavedToAnalysis = False
         start_set_person = time.time()
+        
         if self.isSaveRecogFiles:
             # (1) initial recognition file is saved here, because in the case that the recognition was ignored (either due to wrong input from the user
             # or because of timeout), the data will not be written unless there is a confirmation.
@@ -2075,13 +2080,15 @@ class RecogniserBN:
         self.recog_file = "RecogniserBN.bif"
         self.recogniser_csv_file = "RecogniserBN.csv"
         self.initial_recognition_file = "InitialRecognition.csv"
-        self.analysis_file = "AnalysisFolder/Analysis.json"
-        self.comparison_file = "AnalysisFolder/Comparison.csv"
+        self.analysis_file = self.analysis_dir + "Analysis.json"
+        self.comparison_file = self.analysis_dir + "Comparison.csv"
         self.db_file = "db.csv"
         self.stats_file = "stats.csv"
         self.conf_matrix_file = "confusionMatrix.csv"
         self.recog_folder = ""
         self.image_save_dir = "images/"
+        self.previous_files_dir = "LastSaved/"
+        self.faceDB = "faceDB"
                 
     def setFilePaths(self, recog_folder):
         """Changes the directory to save the files"""
@@ -2094,6 +2101,8 @@ class RecogniserBN:
         self.image_save_dir = recog_folder + "images/"
         self.stats_file = recog_folder + self.stats_file
         self.conf_matrix_file = recog_folder + self.conf_matrix_file
+        self.previous_files_dir = recog_folder + self.previous_files_dir
+        self.faceDB = recog_folder + self.faceDB
         self.recog_folder = recog_folder
 
     def resetFiles(self):
@@ -2116,10 +2125,10 @@ class RecogniserBN:
             writer = csv.writer(outcsv)
 #             writer.writerow(["id", "name", "gender", "age", "height", "times", "occurrence"])
             writer.writerow(["id", "name", "gender", "birthYear", "height", "times", "occurrence"])
-        analysis_dir = self.analysis_file.replace("/Analysis.json","")
-        if os.path.isdir(analysis_dir):
-            shutil.rmtree(analysis_dir)
-        os.makedirs(analysis_dir)
+        analys_dir = self.recog_folder + self.analysis_dir
+        if os.path.isdir(analys_dir):
+            shutil.rmtree(analys_dir)
+        os.makedirs(analys_dir)        
         with open(self.comparison_file, 'wb') as outcsv:
             writer = csv.writer(outcsv)
             writer.writerow(["I_real", "I_est", "F_est", "I_prob", "F_prob", "Calc_time", "R", "Quality", "Highest_I_prob", "Highest_F_prob"])
@@ -2132,6 +2141,57 @@ class RecogniserBN:
         os.makedirs(self.image_save_dir + "Unknown_True")
         os.makedirs(self.image_save_dir + "Unknown_False")
         os.makedirs(self.image_save_dir + "discarded")
+        
+        if os.path.isdir(self.previous_files_dir):
+            shutil.rmtree(self.previous_files_dir)
+        os.makedirs(self.previous_files_dir)
+        if os.path.isfile(self.faceDB):
+            os.remove(self.faceDB)
+            
+    def saveFilesToLastSaved(self):
+        # add files one by one to avoid delay (instead of transferring the entire folder)
+        if os.path.isfile(self.recog_file):
+            shutil.copy2(self.recog_file, self.previous_files_dir)
+        if self.isSaveRecogFiles:
+            if os.path.isfile(self.recogniser_csv_file):
+                shutil.copy2(self.recogniser_csv_file, self.previous_files_dir)
+            if os.path.isfile(self.initial_recognition_file):
+                shutil.copy2(self.initial_recognition_file, self.previous_files_dir)
+            if os.path.isfile(self.db_file):
+                shutil.copy2(self.db_file, self.previous_files_dir)
+            if os.path.isfile(self.stats_file):
+                shutil.copy2(self.stats_file, self.previous_files_dir)
+            if os.path.isfile(self.conf_matrix_file):
+                shutil.copy2(self.conf_matrix_file, self.previous_files_dir)
+            if os.path.isfile(self.comparison_file):
+                shutil.copy2(self.comparison_file, analys_dir_saved)
+            if os.path.isfile(self.faceDB):
+                shutil.copy2(self.faceDB, self.previous_files_dir)
+    
+    def revertToLastSaved(self, isRobot):
+        # overwrite the current files with the previously saved files (RecogniserBN.bif, db.csv, RecogniserBN.csv and InitialRecognition.csv)
+        copy_tree(self.previous_files_dir, self.recog_folder)
+        if isRobot:
+            # if robot: set the previously saved faceDB as the current faceDB
+            self.useFaceDetectionDB()
+            
+#         if self.isLogMode and self.isSaveRecogFiles:
+#             # remove last analysis files (NOT NECESSARY BECAUSE THEY WILL BE OVERWRITTEN)
+#             analys_dir = self.recog_folder + self.analysis_dir 
+#             if not os.path.isdir(analys_dir):
+#                  # remove last two analysis files
+#                 analys_file = self.analysis_file.replace(".json","") + str(self.num_recognitions) + ".json"
+#                 analys_file_2 = analys_file.replace(".json", "_2.json")
+#                 if os.path.isfile(analys_file):
+#                     os.remove(analys_file)
+#                 if os.path.isfile(analys_file_2):
+#                     os.remove(analys_file_2)
+#         for dirpath, dirnames, filenames in os.walk(self.image_save_dir):
+#             # remove image from folder (NOT NECESSARY BECAUSE IT WILL BE OVERWRITTEN)
+#             for filename in filenames:
+#                 if filename.startswith(str(self.num_recognitions) + "_"):
+#                     os.remove(filename)
+#                     break
  
     def learnFromFile(self, db_list=None, init_list=None, recogs_list=None,
                             db_file = None, init_recog_file = None, final_recog_file = None, 
@@ -3121,16 +3181,20 @@ class RecogniserBN:
         """Reset face detection database (NAOqi)"""
         self.face_service.clearDatabase()
 
-    def saveFaceDetectionDB(self, recog_folder):
+    def saveFaceDetectionDB(self):
         """Save face recognition database to the recognition folder (NAOqi)"""
         db_path = self.face_service.getUsedDatabase()
-        db_dest = recog_folder + "faceDB"
-        shutil.copy2(db_path, db_dest)
+        shutil.copy2(db_path, self.faceDB)
     
-    def useFaceDetectionDB(self, facedb):
+    def useFaceDetectionDB(self, facedb=None):
         """Use the specified facedb ('faceDB') in the current directory and recog_folder (NAOqi)"""
-        cur_dir = os.path.dirname(os.path.realpath(__file__)) + "/" + self.recog_folder
-        self.face_service.useDatabase(cur_dir + facedb)
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        if facedb:
+            self.faceDB = self.recog_folder + facedb
+        self.face_service.useDatabase(cur_dir + self.faceDB)
+    
+    def removePersonFromFaceDB(self, person_id):
+        self.face_service.forgetPerson(person_id)
         
     def testImagesForFace(self, src_folder):
         """Test images for face detection. Remove images that do not have a face detected (NAOqi)"""
@@ -3157,23 +3221,36 @@ class RecogniserBN:
 
 
     def loadSentencesForRecognition(self):
-        """Load sentences for recognition feedbacks."""
-        self.lookAtTablet = "Hello there, could you look at the tablet "
-        self.pleasePhrase = "please?"
-        self.enterName = "and enter your name please?"
-        self.unknownPerson = "Oh I'm sorry, I couldn't recognise who you are! Could you enter your name on the tablet please?"
-        self.askForIdentityConfirmal = "Hello XX, it is nice to see you again! Could you confirm that it is you please?"   
-        self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Welcome back XX!", "You look different today XX, is it a new haircut?"]
-        self.registrationPhrase = "Hello XX, nice to meet you!"
-        self.falseRegistration = "But we have met before! Nice to see you again XX!"
-        self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!"]
-        self.noFaceInImage = "I am sorry, there seems to be a problem with the image. Could you look at the tablet again please?"
-        if self.isMemoryOnRobot:
-            self.registrationPhrase = "Nice to meet you XX!"
-            self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Nice to see you again XX!", "You look different today XX, is it a new haircut?", 
+        """Load sentences for recognition feedbacks. If self.useSpanish is True, then uttered sentences are in Spanish, else in English."""
+        # TODO: Change enter name to choose name (in Spanish as well)
+        if self.useSpanish:
+            self.lookAtTablet = "Hola, podrias mirar la pantalla "
+            self.pleasePhrase = "por favor?"
+            self.enterName = "e ingresar tu nombre por favor?"
+            self.unknownPerson = "Oh lo siento mucho, No pude reconocer quien eres! Podrias ingresar tu nombre en la pantalla por favor?"
+            self.askForIdentityConfirmal = "Hola XX, es bueno verte de nuevo ! Podrias confirmar que eres tu?"   
+            self.falseRecognition = ["Ah, por supuesto, me disculpo! Parece que mis ojos me estan fallando... Bienvenido de nuevo XX!", "Te ves diferente hoy, es un nuevo corte?"]
+            self.registrationPhrase = "Hola XX, encantado de conocerte"
+            self.falseRegistration = "Ya te había visto antes! Es un gusto verte de nuevo XX!"
+            self.correctRecognition = ["Sabia que eras tu, solo queria estar seguro", "Te ves bien hoy XX!"]
+            self.noFaceInImage = "Hmmm, parece que hay un problema con la imagen. Podrias mirar la pantalla otra vez por favor?"
+        else:
+            self.lookAtTablet = "Hello there, could you look at the tablet "
+            self.pleasePhrase = "please?"
+            self.enterName = "and enter your name please?"
+            self.unknownPerson = "Oh I'm sorry, I couldn't recognise who you are! Could you enter your id on the tablet please?"
+            self.askForIdentityConfirmal = "Hello XX, it is nice to see you again! Could you confirm that it is you please?"   
+            self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Welcome back XX!", "You look different today XX, is it a new haircut?"]
+            self.registrationPhrase = "Hello XX, nice to meet you!"
+            self.falseRegistration = "But we have met before! Nice to see you again XX!"
+            self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!"]
+            self.noFaceInImage = "I am sorry, there seems to be a problem with the image. Could you look at the tablet again please?"
+            if self.isMemoryOnRobot:
+                self.registrationPhrase = "Nice to meet you XX!"
+                self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Nice to see you again XX!", "You look different today XX, is it a new haircut?", 
                                          "Ehehe, I was kidding. Of course it is you XX!", "Well we robots can be wrong sometimes, but we have you, XX, to make us better."]
-            self.unknownPerson = "Hello there, I am Pepper! What is your name?"
-            self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!", "Just wanted to say hello, hope you are doing fine XX!", 
+                self.unknownPerson = "Hello there, I am Pepper! What is your name?"
+                self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!", "Just wanted to say hello, hope you are doing fine XX!", 
                                            "I feel much better every time I see you XX!", "You bring much needed sunshine to my day XX!"]
             
     def say(self, sentence):
@@ -3428,7 +3505,7 @@ class RecogniserBN:
         if self.isSaveRecogFiles:
             self.saveBN()
             self.saveConfusionMatrix()
-        self.saveFaceDetectionDB(recog_folder)
+        self.saveFaceDetectionDB()
         
         if self.isDebugMode:
             print "time for validation on robot:" + str(time.time() - start_time) 
