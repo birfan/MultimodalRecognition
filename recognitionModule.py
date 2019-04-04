@@ -262,6 +262,10 @@ class RecognitionModule(object):
         # NOTE: Uncomment this to clean the files and face recognition database
         # self.cleanDB()
 
+        # NOTE: Uncomment this to revert the files to the previous recognition state. 
+        # IMPORTANT: num_recog MUST BE MANUALLY ENTERED (LOOK AT THE LAST RECOGNITION NUMBER FROM RecogniserBN.csv)!
+        # self.RB.revertToLastSaved(isRobot=True, num_recog=3)
+
         self.loadDB(self.RB.db_file)
         try:
             self.robot_ip = self.s.ALTabletService.robotIp()
@@ -467,6 +471,19 @@ class RecognitionModule(object):
 
             self.subscribeToHead()
             self.detectPeople()
+
+    @qi.bind(returnType=qi.Void, paramsType=[]) 
+    def addPersonManually(self, p_name, p_gender, p_age, p_height):
+        self.person[0] = str(self.num_db+1)
+        self.person[1] = p_name
+        self.person[2] = p_gender
+        self.person[3] = p_age
+        self.person[4] = p_height
+        self.person[5] = [self.getTime()]
+        self.isAddPersonToDB = True
+        self.isRegistered = False
+        print "Start to add this person to the DB:",self.person
+        self.RB.setPersonToAdd(self.person)
             
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognition(self):
