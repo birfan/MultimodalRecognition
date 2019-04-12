@@ -92,7 +92,7 @@ In case of any erroneous recognition, the database can be reverted to the *LAST*
 Uncomment the line 267: self.RB.revertToLastSaved(isRobot=True)
 If a robot is being used for recognition, isRobot = True, otherwise, False.
 
-## Using a non-SoftBank robot or another identifier
+## Using another robot or another identifier
 
 Using another robot or using other identifier for the given modalities (face, gender, age, height) is definitely possible! You would need to modify the "FUNCTIONS FOR THE ROBOT" section in RecognitionMemory.py file (lines 3062- 3280).
 
