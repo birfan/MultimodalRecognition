@@ -31,7 +31,7 @@ Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, Tony Belpaeme, 2018, "Multi-
     $ scp RecognitionMemory.py nao@ROBOT_IP:path_to_folder
 ```
 
-## Usage
+## Usage with tablet interaction as described in the HRI workshop paper
 
 Start the code on the robot:
 
@@ -41,9 +41,51 @@ Start the code on the robot:
     $ python recognitionModule.py
 
 ```
-**NOTE: If it is the first time running the code, uncomment line 263. Then comment it for the next times.**
+**NOTE: If it is the first time running the code, uncomment line 264 ( self.cleanDB() ). Then comment it for the next times.**
 
 Touch the left hand of Pepper robot to start the code.
+
+## Usage without tablet interaction for HRI in recognitionModule: "Silent" mode
+
+In line 118 in recognitionModule.py, set self.isTabletInteraction to False.
+
+This mode does not need tablet interaction with the robot (i.e. the name is not requested from the user for confirmation, and the user does not enroll).
+
+1. To start the recognition, call function: 
+
+recogniseSilent()
+
+2. If the person is *NOT previously enrolled*, add the person to the dataset: 
+
+addPersonManually(p_name, p_gender, p_age, p_height)
+
+If the estimated recognition results would like to be used as the "true values" of the recognition, the function can be called as:
+
+addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
+
+**THIS FUNCTION SHOULD BE CALLED BEFORE confirmRecognitionSilent IFF THE PERSON IS NOT PREVIOUSLY ENROLLED**
+
+3. To confirm the recognition, call: 
+
+confirmRecognitionSilent()
+
+## Cross-validation
+
+Use function runCrossValidation in RecognitionMemory with specified parameters for cross validation from recognition results on file. Recognition results are obtained from running the cross-validation on the (Pepper) robot for IMDB experiments.
+
+## Cross-validation on the (Pepper) robot
+
+Use function runCrossValidationOnRobot in RecognitionMemory with specified parameters for cross validation from recognition results on the robot (simulating HRI scenario with images from IMDB dataset).
+
+## Revert to last saved state
+
+In case of any erroneous recognition, the database can be reverted to the *LAST* (the one before the current one) recognition state. 
+Uncomment the line 267: self.RB.revertToLastSaved(isRobot=True)
+If a robot is being used for recognition, isRobot = True, otherwise, False.
+
+## Using a non-SoftBank robot or another identifier
+
+Using another robot or using other identifier for the given modalities (face, gender, age, height) is definitely possible! You would need to modify the "FUNCTIONS FOR THE ROBOT" section in RecognitionMemory.py file (lines 3062- 3280).
 
 ## License
 
