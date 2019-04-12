@@ -116,6 +116,7 @@ class RecogniserBN:
 
         """THE CONSTANTS OF THE SYSTEM: CAN BE CHANGED DEPENDING ON THE CONTEXT OR THE ALGORITHM USED (NOT NECESSARY)"""
         self.num_recog_min = 5 # for the first num_recog_min recognitions, the identity is estimated as unknown (independent of the number of people in the dataset)
+        self.isUseFaceRecogEstForMinRecog = False # If instead of "unknown", the face recognition estimate of the identity is desired to be used, set to True
 
         self.age_min = 0 # min age that can be detected (NAOqi) 
         self.age_max = 75 # max age that can be detected (NAOqi)
@@ -1282,10 +1283,14 @@ class RecogniserBN:
                         ie_avg = [x + y for x, y in zip(ie_avg, temp_p)]
                 identity_est_prob = self.normaliseSum(ie_avg)
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
+                if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
+                    self.identity_est = self.face_est
                 if self.isDebugMode:
                     print "self.identity_est:" + str(self.identity_est)
             else:
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity() # (4)
                 self.identity_prob_list = [1.0] # for unknown
         else:
@@ -1295,6 +1300,7 @@ class RecogniserBN:
                 self.num_mult_recognitions = self.def_num_mult_recognitions
                 return ""
             self.nonweighted_evidence = self.recog_results
+            self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
             if self.num_people > 1:
                 self.evidence_list = []
                 self.ie, evidence = self.setEvidence(self.recog_results) # (3)
@@ -1302,13 +1308,14 @@ class RecogniserBN:
                 identity_est_prob = np.array(self.ie.posterior(self.I)[:])
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
+                if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
+                    self.identity_est = self.face_est
             else:
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity() # (4)
                 self.identity_prob_list = [1.0] # for unknown
         if self.isDebugMode:
             print "time for recognise: " + str(time.time() - r_time_t)
         self.identity_est_prob = self.identity_prob_list
-        self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
         return self.identity_est
 
     def threadedRecognisePerson(self, num_recog):
@@ -1779,7 +1786,6 @@ class RecogniserBN:
                 identity_est = self.unknown_var
                 if self.isDebugMode:            
                     print "unknown condition (quality < quality_threshold or quality == 0)"
- 
         else:
             identity_est = self.unknown_var
             quality_estimate = -1
@@ -1844,7 +1850,7 @@ class RecogniserBN:
         unknown_index = self.i_labels.index(self.unknown_var)
         if not total_face_prob:
             return self.unknown_var, [self.face_recog_threshold]
-        elif self.num_recognitions < self.num_recog_min:
+        elif self.num_recognitions < self.num_recog_min and not self.isUseFaceRecogEstForMinRecog:
             total_face_prob.insert(unknown_index, self.face_recog_threshold)
             return self.unknown_var, total_face_prob
         max_est_value = max(total_face_prob)
@@ -2168,9 +2174,9 @@ class RecogniserBN:
             if os.path.isfile(self.conf_matrix_file):
                 shutil.copy2(self.conf_matrix_file, self.previous_files_dir)  
             analys_save_dir = self.previous_files_dir + self.analysis_dir
-            if self.isLogMode and not os.path.isdir(analys_save_dir):
+            if not os.path.isdir(analys_save_dir):
                os.makedirs(analys_save_dir)
-            if self.isLogMode and os.path.isfile(self.comparison_file):
+            if os.path.isfile(self.comparison_file):
                 shutil.copy2(self.comparison_file, analys_save_dir)
             if os.path.isfile(self.faceDB):
                 shutil.copy2(self.faceDB, self.previous_files_dir)

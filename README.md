@@ -18,6 +18,8 @@ Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, Tony Belpaeme, 2018, "Multi-
 
 *util* folder contains instructions to install libraries necessary for RecognitionMemory and the compiled libraries for NAOqi. Use README\_SHORT instructions to use the already compiled libraries provided in the folder (works for both Naoqi 2.4 and 2.5), otherwise, you can compile your libraries according to README\_FULL instructions.
 
+**NOTE:** For the first few recognitions (e.g. 5 in the papers) defined by *num_recog_min* in RecognitionMemory, the user will be recognised as "unknown" to let BN build enough recognitions to provide better results and to decrease FAR. This parameter can be changed in line 118, to decrease or increase the numbe. If instead of "unknown", the face recognition estimate of the identity is desired to be used, set *isUseFaceRecogEstForMinRecog* to True (in line 119).
+
 ## Installation
 
 * Install compiled libraries to the robot using README\_SHORT file in util folder.
@@ -41,13 +43,17 @@ Start the code on the robot:
     $ python recognitionModule.py
 
 ```
-**NOTE: If it is the first time running the code, uncomment line 264 ( self.cleanDB() ). Then comment it for the next times.**
+**NOTE:** If it is the first time running the code, uncomment line 264:
+```
+    self.cleanDB()
+```
+Then comment it again before the next run.
 
 Touch the left hand of Pepper robot to start the code.
 
 ## Usage without tablet interaction for HRI in recognitionModule: "Silent" mode
 
-In line 118 in recognitionModule.py, set self.isTabletInteraction to False.
+In line 118 in recognitionModule.py, set isTabletInteraction to False.
 
 This mode does not need tablet interaction with the robot (i.e. the name is not requested from the user for confirmation, and the user does not enroll).
 
@@ -89,7 +95,12 @@ Use function runCrossValidationOnRobot in RecognitionMemory with specified param
 ## Revert to last saved state
 
 In case of any erroneous recognition, the database can be reverted to the *LAST* (the one before the current one) recognition state. 
-Uncomment the line 267: self.RB.revertToLastSaved(isRobot=True)
+Uncomment the line 267: 
+
+```
+    self.RB.revertToLastSaved(isRobot=True)
+```
+
 If a robot is being used for recognition, isRobot = True, otherwise, False.
 
 ## Using another robot or another identifier

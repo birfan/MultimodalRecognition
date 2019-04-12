@@ -1077,7 +1077,7 @@ class RecognitionModule(object):
             self.person[3] = self.db_df.loc[self.db_df['name'] == p_name, 'age'].iloc[0]
         self.person[4] = self.db_df.loc[self.db_df['name'] == p_name, 'height'].iloc[0]
         self.person[5] = self.db_df.loc[self.db_df['name'] == p_name, 'times'].iloc[0]
-#         print self.person
+        print "The person is :",self.person
     
     @qi.bind(returnType=qi.Void, paramsType=[])
     def cleanDB(self):
