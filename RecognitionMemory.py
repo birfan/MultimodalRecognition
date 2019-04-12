@@ -2159,7 +2159,7 @@ class RecogniserBN:
             os.remove(self.faceDB)
             
     def saveFilesToLastSaved(self):
-        # add files one by one to avoid delay (instead of transferring the entire folder)
+        """add files one by one to avoid delay (instead of transferring the entire folder)"""
         if os.path.isfile(self.recog_file):
             shutil.copy2(self.recog_file, self.previous_files_dir)
         if self.isSaveRecogFiles:
@@ -3191,13 +3191,15 @@ class RecogniserBN:
         """Reset face detection database (NAOqi)"""
         self.face_service.clearDatabase()
 
-    def saveFaceDetectionDB(self):
+    def saveFaceDetectionDB(self, recog_folder=None):
         """Save face recognition database to the recognition folder (NAOqi)"""
+        if recog_folder is None:
+            recog_folder = self.recog_folder
         db_path = self.face_service.getUsedDatabase()
         recog_face_path = os.path.dirname(os.path.realpath(__file__)) + "/" + self.faceDB
         if db_path != recog_face_path:
             # if the robot is using another face directory other than the current directory, save the file to the recognition folder.
-            shutil.copy2(db_path, self.recog_folder)
+            shutil.copy2(db_path, recog_folder)
     
     def useFaceDetectionDB(self, facedb=None):
         """Use the specified facedb ('faceDB') in the current directory and recog_folder (NAOqi)"""
