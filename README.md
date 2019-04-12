@@ -51,23 +51,32 @@ In line 118 in recognitionModule.py, set self.isTabletInteraction to False.
 
 This mode does not need tablet interaction with the robot (i.e. the name is not requested from the user for confirmation, and the user does not enroll).
 
-1. To start the recognition, call function: 
+1. To start the recognition, call function:
 
-recogniseSilent()
+```
+    recogniseSilent()
+```
 
 2. If the person is *NOT previously enrolled*, add the person to the dataset: 
 
-addPersonManually(p_name, p_gender, p_age, p_height)
+```
+    addPersonManually(p_name, p_gender, p_age, p_height)
+```
 
 If the estimated recognition results would like to be used as the "true values" of the recognition, the function can be called as:
 
-addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
+```
+    addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
+```
 
 **THIS FUNCTION SHOULD BE CALLED BEFORE confirmRecognitionSilent IFF THE PERSON IS NOT PREVIOUSLY ENROLLED**
 
+
 3. To confirm the recognition, call: 
 
-confirmRecognitionSilent()
+```
+    confirmRecognitionSilent()
+```
 
 ## Cross-validation
 
