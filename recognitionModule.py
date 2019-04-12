@@ -115,6 +115,7 @@ class RecognitionModule(object):
         self.isNameAsked = False
         self.isRegistrationAsked = False
         self.isInputAsked = False
+        self.isTabletInteraction = True # True if the interaction is from tablet, False otherwise
         
     @qi.bind(returnType=qi.Void, paramsType=[])
     def blink(self):
@@ -262,9 +263,8 @@ class RecognitionModule(object):
         # NOTE: Uncomment this to clean the files and face recognition database
         # self.cleanDB()
 
-        # NOTE: Uncomment this to revert the files to the previous recognition state. 
-        # IMPORTANT: num_recog MUST BE MANUALLY ENTERED (LOOK AT THE LAST RECOGNITION NUMBER FROM RecogniserBN.csv)!
-        # self.RB.revertToLastSaved(isRobot=True, num_recog=3)
+        # NOTE: Uncomment this to revert the files to the previous recognition state.
+        # self.RB.revertToLastSaved(isRobot=True)
 
         self.loadDB(self.RB.db_file)
         try:
@@ -387,7 +387,10 @@ class RecognitionModule(object):
                 else:
                     self.takePicture()
                     self.recog_start_time = time.time()
-                    self.recognise()
+                    if self.isTabletInteraction:
+                       self.recognise()
+                    else:
+                        self.recogniseSilent()
             else:
                 if time.time() - self.start_face_detect_time <= self.faceDetectTimer:
                     if self.isRegisteringPerson and self.register_image_num_trials == 0 and not self.isAskedForReposition:
@@ -472,6 +475,45 @@ class RecognitionModule(object):
             self.subscribeToHead()
             self.detectPeople()
 
+    @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
+    def recogniseSilent(self):
+        self.isRegistered = True
+        self.isAddPersonToDB = False
+        self.isConfirmRegistration = False
+        self.isRegisteringPerson = False
+        self.RB.setSessionVar(isRegistered = self.isRegistered, isAddPersonToDB = self.isAddPersonToDB)    
+        
+        self.identity_est = self.RB.startRecognition() # get the estimated identity from the recognition network
+        print "time for recognition:" + str(time.time()-self.recog_start_time)
+        self.counter = 0 
+        self.isRecognitionCorrect = False
+        self.id_tablet = None
+        self.id_confirm = None
+        identity_name = ""
+        if self.identity_est:
+            self.isRecognitionOn = True
+            self.subscribeToLeftBumper()
+            if not self.s.ALBasicAwareness.isEnabled():
+                self.s.ALBasicAwareness.setEnabled(True)
+            if self.identity_est == self.RB.unknown_var:
+                self.isRegistered = False
+                print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
+                self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
+                
+            else:
+                identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
+                print identity_name
+                self.getPersonFromDB(identity_name)
+                print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
+                self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])  
+
+        else:
+            print "all images are discarded"
+
+            self.subscribeToHead()
+            self.detectPeople()
+        return self.isRegistered, self.identity_est, identity_name
+    
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def addPersonManually(self, p_name, p_gender, p_age, p_height):
         self.person[0] = str(self.num_db+1)
@@ -521,7 +563,29 @@ class RecognitionModule(object):
         self.subscribeToHead()
         self.detectPeople()
         
-        
+    @qi.bind(returnType=qi.Void, paramsType=[]) 
+    def confirmRecognitionSilent(self):
+        p_id = None
+        self.confirm_recognition_start = time.time()
+        if self.isMemoryRobot and self.isRegistered:
+            p_id = str(self.person[0])
+            if self.identity_est == p_id:
+                self.isRecognitionCorrect = True # True if the name is confirmed by the patient
+                
+        if self.isRecognitionCorrect:
+            self.RB.confirmPersonIdentity() # save the network, analysis data, csv for learning and picture of the person in the tablet
+        else:
+            p_id = str(self.person[0])
+            self.RB.confirmPersonIdentity(p_id)
+        self.RB.saveFaceDetectionDB()
+        self.recog_end_time = time.time()
+        print "confirmation time:" + str(self.recog_end_time- self.confirm_recognition_start) 
+        if self.isAddPersonToDB:
+            self.loadDB(self.RB.db_file)
+
+        self.subscribeToHead()
+        self.detectPeople()
+                
     @qi.bind(returnType=qi.Bool, paramsType=[]) 
     def isParamCorrect(self, param, value):
         is_correct = False
@@ -1029,7 +1093,7 @@ class RecognitionModule(object):
         self.logger.info("RecognitionModule stopped by user request.")
         self.running = False
         self.RB.saveBN()
-        self.RB.saveFaceDetectionDB(self.recog_folder)
+        self.RB.saveFaceDetectionDB()
 #         self.s.ALMotion.rest()
 #         time.sleep(2.0)
         try:

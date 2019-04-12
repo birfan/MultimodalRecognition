@@ -2175,9 +2175,11 @@ class RecogniserBN:
             if os.path.isfile(self.faceDB):
                 shutil.copy2(self.faceDB, self.previous_files_dir)
     
-    def revertToLastSaved(self, isRobot, num_recog):
-        # overwrite the current files with the previously saved files (RecogniserBN.bif, db.csv, RecogniserBN.csv and InitialRecognition.csv)
+    def revertToLastSaved(self, isRobot):
+        """overwrite the current files with the previously saved files (RecogniserBN.bif, db.csv, RecogniserBN.csv and InitialRecognition.csv)
+        If the robot is being used for evaluation, use isRobot = True. Otherwise, if the code is evaluated offline, use isRobot = False."""
         copy_tree(self.previous_files_dir, self.recog_folder)
+        num_recog = sum(1 for line in open(self.recogniser_csv_file) ) - 1
         if isRobot:
             # if robot: set the previously saved faceDB as the current faceDB
             self.useFaceDetectionDB()
