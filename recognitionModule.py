@@ -516,7 +516,7 @@ class RecognitionModule(object):
     
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def addPersonManually(self, p_name, p_gender, p_age, p_height):
-        self.person[0] = str(self.num_db+1)
+        self.person[0] = str(self.num_db + 1)
         self.person[1] = p_name
         self.person[2] = p_gender
         self.person[3] = p_age
@@ -524,8 +524,15 @@ class RecognitionModule(object):
         self.person[5] = [self.getTime()]
         self.isAddPersonToDB = True
         self.isRegistered = False
-        print "Start to add this person to the DB:",self.person
+        print "Adding person to the DB:", self.person
         self.RB.setPersonToAdd(self.person)
+        
+    
+    @qi.bind(returnType=qi.Void, paramsType=[]) 
+    def addPersonUsingRecogValues(self, p_name):
+        """Add a person using the estimated recognition results as the "true values" of the recognition.
+        NOTE: recognise() should be called before calling this function!!"""
+        self.addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
             
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognition(self):

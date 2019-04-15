@@ -69,10 +69,10 @@ This mode does not need tablet interaction with the robot (i.e. the name is not 
     addPersonManually(p_name, p_gender, p_age, p_height)
 ```
 
-If the estimated recognition results would like to be used as the "true values" of the recognition, the function can be called as:
+If the estimated recognition results would like to be used as the "true values" of the recognition (*recognise()* function should be called before calling this function!):
 
 ```
-    addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
+    addPersonUsingRecogValues(p_name)
 ```
 
 **THIS FUNCTION SHOULD BE CALLED BEFORE confirmRecognitionSilent IFF THE PERSON IS NOT PREVIOUSLY ENROLLED**
