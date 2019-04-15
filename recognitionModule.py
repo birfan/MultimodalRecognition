@@ -527,7 +527,6 @@ class RecognitionModule(object):
         print "Adding person to the DB:", self.person
         self.RB.setPersonToAdd(self.person)
         
-    
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def addPersonUsingRecogValues(self, p_name):
         """Add a person using the estimated recognition results as the "true values" of the recognition.
