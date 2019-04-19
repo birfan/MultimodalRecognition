@@ -1283,15 +1283,15 @@ class RecogniserBN:
                         ie_avg = [x + y for x, y in zip(ie_avg, temp_p)]
                 identity_est_prob = self.normaliseSum(ie_avg)
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
-                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
                     self.identity_est = self.face_est
                 if self.isDebugMode:
                     print "self.identity_est:" + str(self.identity_est)
             else:
-                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity() # (4)
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_prob_list = [1.0] # for unknown
         else:
             self.recog_results = self.recognisePerson() # (2)
@@ -1300,7 +1300,6 @@ class RecogniserBN:
                 self.num_mult_recognitions = self.def_num_mult_recognitions
                 return ""
             self.nonweighted_evidence = self.recog_results
-            self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
             if self.num_people > 1:
                 self.evidence_list = []
                 self.ie, evidence = self.setEvidence(self.recog_results) # (3)
@@ -1308,10 +1307,12 @@ class RecogniserBN:
                 identity_est_prob = np.array(self.ie.posterior(self.I)[:])
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
                     self.identity_est = self.face_est
             else:
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity() # (4)
+                self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_prob_list = [1.0] # for unknown
         if self.isDebugMode:
             print "time for recognise: " + str(time.time() - r_time_t)
