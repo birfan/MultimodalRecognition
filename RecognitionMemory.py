@@ -3200,13 +3200,21 @@ class RecogniserBN:
         recog_face_path = os.path.dirname(os.path.realpath(__file__)) + "/" + self.faceDB
         if db_path != recog_face_path:
             # if the robot is using another face directory other than the current directory, save the file to the recognition folder.
-            shutil.copy2(db_path, recog_folder)
-    
+            shutil.copy2(db_path, self.faceDB)
+
+    def setFaceDetectionDB(self, facedb=None):
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        if facedb:
+            self.faceDB = self.recog_folder + facedb
+        else:
+            self.faceDB = self.recog_folder + "faceDB"
+
     def useFaceDetectionDB(self, facedb=None):
         """Use the specified facedb ('faceDB') in the current directory and recog_folder (NAOqi)"""
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         if facedb:
             self.faceDB = self.recog_folder + facedb
+
         self.face_service.useDatabase(cur_dir + "/" + self.faceDB)
     
     def removePersonFromFaceDB(self, person_id):

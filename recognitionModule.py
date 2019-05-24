@@ -249,16 +249,17 @@ class RecognitionModule(object):
         self.isMultipleRecognitions = False
         self.numMultRecognitions = 3
         
-        self.RB.setSessionConstant(isMemoryRobot = self.isMemoryRobot, isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
-        
         self.RB.setFilePaths(self.recog_folder)
         self.RB.connectToRobot(self.r_ip, port = 9559, useSpanish = False, isImageFromTablet = True, isMemoryOnRobot = True, imagePath = image_path)
         self.s.RecognitionService.setHeadAngles(-10.0)
-        
+        self.RB.setSessionConstant(isMemoryRobot = self.isMemoryRobot, isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
+
         if os.path.isfile(self.recog_folder + self.face_db):
             self.RB.useFaceDetectionDB("faceDB")
         else:
+            self.cleanDB()
             self.RB.resetFaceDetectionDB()
+            self.RB.setFaceDetectionDB("faceDB")
            
         # NOTE: Uncomment this to clean the files and face recognition database
         # self.cleanDB()
