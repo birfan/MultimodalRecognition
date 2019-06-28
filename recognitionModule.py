@@ -40,6 +40,8 @@ from datetime import datetime
 from numpy.ma.core import ids
 import os.path
 
+
+@RecognitionMemory.for_all_methods(RecognitionMemory.print_function_name)
 @qi.multiThreaded()
 class RecognitionModule(object):
    
@@ -435,6 +437,7 @@ class RecognitionModule(object):
         
         self.identity_est = self.RB.startRecognition() # get the estimated identity from the recognition network
         print "time for recognition:" + str(time.time()-self.recog_start_time)
+        print "In recognise(), identity_est = " + str(self.identity_est)
         self.counter = 0 
         self.isRecognitionCorrect = False
         self.id_tablet = None

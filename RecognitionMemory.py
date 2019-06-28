@@ -56,6 +56,24 @@ import functools
 import threading
 import random # for making random choices for the phrases
 
+
+def print_function_name(func):
+    def echo_func(*func_args, **func_kwargs):
+        print('Start func: {}'.format(func.__name__))
+        return func(*func_args, **func_kwargs)
+    return echo_func
+
+
+def for_all_methods(decorator):
+    def decorate(cls):
+        for attr in cls.__dict__: # there's propably a better way to do this
+            if callable(getattr(cls, attr)):
+                setattr(cls, attr, decorator(getattr(cls, attr)))
+        return cls
+    return decorate
+
+
+@for_all_methods(print_function_name)
 class RecogniserBN:
     
     def __init__(self):
@@ -1284,6 +1302,7 @@ class RecogniserBN:
                 identity_est_prob = self.normaliseSum(ie_avg)
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
+                print "in RB.recognise(), identity_est = " + str(self.identity_est)
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
                     self.identity_est = self.face_est
@@ -1317,6 +1336,7 @@ class RecogniserBN:
         if self.isDebugMode:
             print "time for recognise: " + str(time.time() - r_time_t)
         self.identity_est_prob = self.identity_prob_list
+        print "in RB.recognise(), identity_est = " + str(self.identity_est)
         return self.identity_est
 
     def threadedRecognisePerson(self, num_recog):
@@ -1791,6 +1811,8 @@ class RecogniserBN:
             identity_est = self.unknown_var
             quality_estimate = -1
         identity_est = str(identity_est)
+        print "in RB.getEstimatedIdentity(), i_post = " + str(i_post) + ", i_labels = " + str(self.i_labels)
+
         return identity_est, quality_estimate
     
     def getQualityEstimation(self, i_post = None):
