@@ -364,7 +364,8 @@ class RecogniserBN:
         
         self.num_recognitions = sum([self.occurrences[i][0] for i in range(1, len(self.occurrences))])       
         self.isBNLoaded = True
-        
+
+        print "recog_file is: " + str(recog_file)
         if os.path.isfile(recog_file):
             self.r_bn = gum.loadBN(recog_file)
             self.loadVariables()
@@ -1142,6 +1143,7 @@ class RecogniserBN:
         IMPORTANT: call setSessionConstant and setSessionVar and take picture before calling this function
         """
         identity_est = self.recognise(isRegistered = self.isRegistered, recog_results_from_file = recog_results_from_file)
+        print "in StartRecognition(), identity_est is: " + identity_est
         
         if self.isMemoryRobot and self.isRegistered and not self.isMemoryOnRobot:
             if identity_est == "":
@@ -1230,6 +1232,7 @@ class RecogniserBN:
         
         # (2)
         if self.isMultipleRecognitions:
+            print "isMultipleRecognitions is " + str(self.isMultipleRecognitions)
             self.mult_recognitions_list = []
             self.recog_results_list = []
             self.ie_list = []
@@ -1238,6 +1241,7 @@ class RecogniserBN:
             self.evidence_list = []
             if self.recog_results_from_file is None:
                 # do parallel
+                print "Recognise in parallel"
                 p_start_time = time.time()
                 pool = ThreadPool(self.num_mult_recognitions)
                 joint_results = pool.map(self.threadedRecognisePerson, [i for i in range(0, self.num_mult_recognitions)])
@@ -1260,6 +1264,7 @@ class RecogniserBN:
                     return ""
                     
                 self.recog_results_list = [i[0] for i in joint_results]
+                print "recog_results_list is :" + str(self.recog_results_list)
                 self.mult_recognitions_list = [i[1] for i in joint_results]
                 self.ie_list = [i[2] for i in joint_results] 
                 self.identity_est_list = [i[3] for i in joint_results]
@@ -1269,8 +1274,12 @@ class RecogniserBN:
                     print "time for parallel recognition: " + str(p_end_time - p_start_time)
             else:
                 #do sequential
+                print "Recognise in sequential"
+
                 for num_recog in range(0, self.num_mult_recognitions):
                     self.recog_results = self.recognisePerson(num_recog)
+                    print "recog_results are : " + str(self.recog_results)
+
                     if not self.recog_results:
                         # if there is no face in the image, discard it from the results
                         self.discarded_data.append(num_recog)
@@ -1301,6 +1310,7 @@ class RecogniserBN:
                         ie_avg = [x + y for x, y in zip(ie_avg, temp_p)]
                 identity_est_prob = self.normaliseSum(ie_avg)
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
+                print "identity_prob_list = " + str(self.identity_prob_list)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
                 print "in RB.recognise(), identity_est = " + str(self.identity_est)
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
@@ -1313,18 +1323,22 @@ class RecogniserBN:
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 self.identity_prob_list = [1.0] # for unknown
         else:
+            print "Recognise in sequential for single recognition"
             self.recog_results = self.recognisePerson() # (2)
+            print "recog_results are : " + str(self.recog_results)
             if not self.recog_results:
                 print "No face detected in the image"
                 self.num_mult_recognitions = self.def_num_mult_recognitions
                 return ""
             self.nonweighted_evidence = self.recog_results
+            print "num_people = " + str(self.num_people)
             if self.num_people > 1:
                 self.evidence_list = []
                 self.ie, evidence = self.setEvidence(self.recog_results) # (3)
                 self.evidence_list.append(evidence)
                 identity_est_prob = np.array(self.ie.posterior(self.I)[:])
                 self.identity_prob_list = [float("{0:.4f}".format(i)) for i in identity_est_prob]
+                print "identity_prob_list = " + str(self.identity_prob_list)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
                 if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
