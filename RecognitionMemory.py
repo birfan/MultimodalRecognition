@@ -1142,7 +1142,7 @@ class RecogniserBN:
         Calls recognise method and says the identity estimated for confirmation (if isSpeak True). Returns estimated identity ID
         IMPORTANT: call setSessionConstant and setSessionVar and take picture before calling this function
         """
-        identity_est = self.recognise(isRegistered = self.isRegistered, recog_results_from_file = recog_results_from_file)
+        identity_est = self.recognise_mem(isRegistered = self.isRegistered, recog_results_from_file = recog_results_from_file)
         print "in StartRecognition(), identity_est is: " + identity_est
         
         if self.isMemoryRobot and self.isRegistered and not self.isMemoryOnRobot:
@@ -1211,7 +1211,7 @@ class RecogniserBN:
     
     #---------------------------------------------FUNCTIONS FOR RECOGNITION---------------------------------------------# 
 
-    def recognise(self, isRegistered = True, recog_results_from_file = None):
+    def recognise_mem(self, isRegistered = True, recog_results_from_file = None):
         """
         Recognise the user using the network:
         (1) Load BN if not already loaded

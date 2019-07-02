@@ -702,6 +702,8 @@ class RecognitionModule(object):
 
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def getRegistrationJS(self, person):
+        """ Build registration message with parameters given from person"""
+
         script = """
                 window.onload = function(){
                     document.getElementById('11').innerHTML = 'Name: XX';
