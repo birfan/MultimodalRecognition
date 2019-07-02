@@ -1435,12 +1435,7 @@ class RecogniserBN:
         if not isRegistered:
             # NOTE: make sure previous images are saved here! (If the images are not saved during enrollment by the robot, call saveImageAfterRecognition(isRegistered, p_id) to save them here)
             
-            if self.userAlreadyRegistered:
-                # (2)
-                self.learnPerson(self.userAlreadyRegistered, p_id, isRobotLearning)
-                if self.isDebugMode:
-                    print "time to learn:" + str(time.time() - end_check_user_registered)
-            else:
+            if not self.userAlreadyRegistered:
                 if self.num_people > 1 and self.update_prob_unknown_method == "evidence":
                     # (3)
                     if self.isMultipleRecognitions:
@@ -1450,7 +1445,6 @@ class RecogniserBN:
                         self.updateProbabilities(self.unknown_var, self.ie, self.evidence_list[0])  
                         
                 time_after_update_unknown = time.time()
-                self.learnPerson(self.userAlreadyRegistered, p_id, isRobotLearning)
                 if self.isDebugMode:
                     print "time to learn:" + str(time.time() - time_after_update_unknown)
             
@@ -1538,13 +1532,6 @@ class RecogniserBN:
             if self.isDebugMode:
                 print "time to recognise for registering:" + str(time.time() - start_recognise_time)
 
-                    
-        else:
-            start_learn_time = time.time()
-            self.learnPerson(isRegistered, p_id, isRobotLearning)
-            if self.isDebugMode:
-                print "time to learn (add picture):" + str(time.time() - start_learn_time)
-        
         start_image_save_time = time.time()
         
         # (7)
@@ -3112,7 +3099,6 @@ class RecogniserBN:
         self.face_service = self.session.service("ALFaceDetection")
         self.people_service = self.session.service("ALPeoplePerception")
         self.memory_service = self.session.service("ALMemory")
-        self.recog_service = self.session.service("RecognitionService")
         self.isImageFromTablet = isImageFromTablet
         
         self.isMemoryOnRobot = isMemoryOnRobot
@@ -3120,7 +3106,6 @@ class RecogniserBN:
             self.isDBinCSV = True
         self.imagePath = imagePath
         
-        self.recog_service.initSystem(self.useSpanish, self.isImageFromTablet, imagePath) # initialize the robot breathing, height offset, and language
 
     def recognisePerson(self, num_recog = None):
         """Recognise person using NAOqi. Modify this function if another identifiers are used for modalities.
@@ -3140,12 +3125,9 @@ class RecogniserBN:
 
         """
         if self.recog_results_from_file is None: 
-            if self.isMultipleRecognitions:
-                self.recog_service.setImagePathMult(num_recog)
             if self.isMemoryOnRobot:
                 recog_results = self.face_recog_results  # self.recog_service.recognisePerson()
             else:
-                self.recog_service.subscribeToPeopleDetected()
                 self.event_recog = threading.Event()
                 self.subscribeToRecognitionResultsUpdated()
                 self.event_recog.wait()
@@ -3165,8 +3147,7 @@ class RecogniserBN:
         self.recognitionResultsUpdatedEvent = "RecognitionResultsUpdated"
         self.recognitionResultsUpdated = self.memory_service.subscriber(self.recognitionResultsUpdatedEvent)
         self.idRecognitionResultsUpdated = self.recognitionResultsUpdated.signal.connect(functools.partial(self.onRecognitionResultsUpdated, self.recognitionResultsUpdatedEvent))
-        self.recog_service.subscribeToPeopleDetected()
-      
+
     def onRecognitionResultsUpdated(self, strVarName, value):
         """When the RecognitionResultsUpdated signal is received, get the recognition results (NAOqi)."""
         self.recognitionResultsUpdated.signal.disconnect(self.idRecognitionResultsUpdated)
@@ -3174,60 +3155,7 @@ class RecogniserBN:
         self.idRecognitionResultsUpdated = -1
         self.recog_temp = value
         self.event_recog.set()
-    
-    def threadedLearnPerson(self, num_recog):
-        """Parallel learning of images (NAOqi)"""
-        self.recog_service.setImagePathMult(num_recog)
-        learn_face_success = self.recog_service.addPictureToPerson(self.p_id)
 
-        return learn_face_success
-        
-    def learnPerson(self, isRegistered, p_id, isRobotLearning):
-        """Learn image for the face recognition dataset (NAOqi)"""
-        self.p_id = p_id
-        self.image_id = None
-        if self.recog_results_from_file is None and isRobotLearning:
-            if isRegistered:     
-                if self.isMultipleRecognitions:
-                    # Parallel learning takes longer than sequential learning
-    #                 pool = ThreadPool(self.num_mult_recognitions)
-    #                 joint_results = pool.map(self.threadedLearnPerson, [i for i in range(0, self.num_mult_recognitions)])
-    #                 pool.close()
-    #                 pool.join()
-    #                 print "time to learn parallel: " + str(time.time() - p_start_time)
-                    for num_recog in [item for item in range(0, self.def_num_mult_recognitions) if item not in self.discarded_data]:
-                        self.recog_service.setImagePathMult(num_recog)
-                        learn_face_success = self.recog_service.addPictureToPerson(p_id)
-                    
-                else:
-                    learn_face_success = self.recog_service.addPictureToPerson(p_id)
-            else:
-                if not self.isMemoryOnRobot:
-                    # registerPersonOnRobot is called in recognitionModule if self.isMemoryOnRobot
-                    if self.isMultipleRecognitions:
-                        for num_recog in [item for item in range(0, self.def_num_mult_recognitions) if item not in self.discarded_data]:
-                            self.recog_service.setImagePathMult(num_recog)
-                            learn_face_success = self.recog_service.registerPerson(p_id)
-                            if num_recog == 0:
-                                counter = 1
-                                while not learn_face_success and counter < 3:
-                                    # TODO: take picture here (an example in recognitionModule for this for NaoQi)
-                                    learn_face_success = self.recog_service.registerPerson(p_id) 
-                    else:
-                        learn_face_success = self.recog_service.registerPerson(p_id)
-                        counter = 1
-                        while not learn_face_success and counter < 3:
-                            # TODO: take another picture from tablet and send to robot (an example in recognitionModule for this for NaoQi)
-                            learn_face_success = self.recog_service.registerPerson(p_id)
-                elif isRobotLearning:
-                    if self.isMultipleRecognitions:
-                        for num_recog in [item for item in range(0, self.def_num_mult_recognitions) if item not in self.discarded_data]:
-                            self.recog_service.setImagePathMult(num_recog)
-                            learn_face_success = self.recog_service.registerPerson(p_id)
-                    else:
-                        learn_face_success = self.recog_service.registerPerson(p_id)
-
- 
     def resetFaceDetectionDB(self):
         """Reset face detection database (NAOqi)"""
         self.face_service.clearDatabase()
@@ -3269,9 +3197,6 @@ class RecogniserBN:
             for file in files:
                 # print file
                 for i in range(0,2):
-                    self.recog_service.setImagePath(subdir + "/" + file)
-                    self.recog_service.setHeightOfPerson(165, True)
-                    self.recog_service.setTimeOfPerson(['21:36:10', '7'])
                     self.recog_results_from_file = None
                     self.isMemoryOnRobot = True
                     self.isMultipleRecognitions = False
@@ -3505,9 +3430,6 @@ class RecogniserBN:
 
             imagePath = self.imagePath + str(bin_folder) + str(numBin) + "/" + str(binImage) + ".jpg"
             self.setImageToCopy(imagePath)
-            self.recog_service.setImagePath(imagePath)
-            self.recog_service.setHeightOfPerson(heightPerson, True)
-            self.recog_service.setTimeOfPerson(timePerson)
                                                
             identity_est = self.startRecognition() # get the estimated identity from the recognition network
             
@@ -3539,10 +3461,7 @@ class RecogniserBN:
                 if isAddPersonToDB:
                     p_id = idPersonNew
                     num_unknown += 1
-                    self.recog_service.setImagePath(imagePath)
-                    self.recog_service.setHeightOfPerson(heightPerson, True)
-                    self.recog_service.setTimeOfPerson(timePerson)
-                               
+
                 else:
                     p_id = idPersonNew
                 self.confirmPersonIdentity(p_id = p_id, isRobotLearning = isRobotLearning)
