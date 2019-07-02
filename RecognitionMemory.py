@@ -120,6 +120,7 @@ class RecogniserBN:
         self.image_save_dir = "images/" # images directory
         self.previous_files_dir = "LastSaved/" # contains the recognition from the previous recognition
         self.faceDB = "faceDB"
+        self.face_recog_results = [[0.587, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['11:23:32', '2', '02', 'July', '2019']]
         """END OF FILES"""
         
         self.node_names = ["I", "F", "G", "A", "H", "T"] # 'I' for identity, 'F' for face, 'G' for gender, 'H' for height, 'T' for time of interaction. Don't change the structure, i.e. if a new parameter is to be added, add it to the end of the list
@@ -3133,13 +3134,16 @@ class RecogniserBN:
         [height, conf_score_height], 
         ['HH:MM:SS', 'num_day', 'Day', 'Month_name', 'Year'] (num_day is the number of day in the week, Monday is 1, Tuesday 2, etc. Day, month and year are not necessary
         ]
-        
+
+
+        NOTE TO MYSELF :  [[0.587, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['11:23:32', '2', '02', 'July', '2019']]
+
         """
         if self.recog_results_from_file is None: 
             if self.isMultipleRecognitions:
                 self.recog_service.setImagePathMult(num_recog)
             if self.isMemoryOnRobot:
-                recog_results = self.recog_service.recognisePerson()
+                recog_results = self.face_recog_results  # self.recog_service.recognisePerson()
             else:
                 self.recog_service.subscribeToPeopleDetected()
                 self.event_recog = threading.Event()
@@ -3152,7 +3156,7 @@ class RecogniserBN:
             else:
                 recog_results = self.recog_results_from_file
         if self.isDebugMode:
-            print "recog_results: " + str(recog_results)
+            print "recog_results form FR: " + str(recog_results)
         return recog_results
             
     def subscribeToRecognitionResultsUpdated(self):
@@ -3635,6 +3639,9 @@ class RecogniserBN:
         print "self.heights: " + str(self.heights)
         print "self.times: " + str(self.times)
         print "self.num_people: " + str(self.num_people)
+
+    def set_face_recog_results(self, results):
+        self.set_face_recog_results = results
                         
 if __name__ == "__main__":
 
