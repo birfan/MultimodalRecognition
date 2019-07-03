@@ -409,18 +409,18 @@ class RecognitionService(object):
         "adds the person in the db"
         # TODO: make sure this is not bothering or there is a button on the tablet
         p_name = str(p_name)
-            
+
         learn_face_success = self.learnFace(p_name)
         if not learn_face_success:
             if num_trials == 0:
-                textToSay = "Hmm, I can't see your face properly. Could you reposition yourself and look at me please?" 
+                textToSay = "Hmm, I can't see your face properly. Could you reposition yourself and look at me please?"
             elif num_trials == 1:
                 textToSay = "I am still struggling to see your face. If you have anything covering it, like hair, hats or even masks, could you remove it please?"
             else:
                 textToSay = "I am so sorry, but I have to keep on trying until I see your face properly."
-            
-            self.s.ALAnimatedSpeech.say(textToSay) 
-        return learn_face_success        
+
+            self.s.ALAnimatedSpeech.say(textToSay)
+        return learn_face_success
             
     @qi.bind(returnType=qi.Bool, paramsType=[qi.String])    
     def addPictureToPerson(self, p_name):

@@ -377,8 +377,7 @@ class RecognitionModule(object):
                     if self.RB.isMultipleRecognitions:
                         self.s.RecognitionService.setImagePathMult(0)
                     
-                    self.register_image_num_trials += 1
-                    if not self.s.RecognitionService.registerPersonOnRobot(self.person[0], self.register_image_num_trials):
+                    if not self.s.RecognitionService.registerPersonOnRobot(self.person[0]):
                         self.subscribeToFaceDetected()
                     else:               
                         self.say("That is a good picture!")
@@ -396,9 +395,6 @@ class RecognitionModule(object):
                         self.recogniseSilent()
             else:
                 if time.time() - self.start_face_detect_time <= self.faceDetectTimer:
-                    if self.isRegisteringPerson and self.register_image_num_trials == 0 and not self.isAskedForReposition:
-                        self.sayNoMovement("Could you position yourself so that I can see you properly?")
-                        self.isAskedForReposition = True
                     self.subscribeToFaceDetected()
                 else:
                     self.subscribeToPeopleDetected()
@@ -965,7 +961,6 @@ class RecognitionModule(object):
             self.say("Great! Now I will take a picture, so I can remember you better the next time I see you!")
             self.isRegisteringPerson = True
             self.isAskedForReposition = False
-            self.register_image_num_trials = 0      
             self.subscribeToFaceDetected()
         elif value == "timeout":
             print "time out"
