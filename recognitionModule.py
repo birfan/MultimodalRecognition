@@ -40,6 +40,11 @@ from datetime import datetime
 from numpy.ma.core import ids
 import os.path
 
+def generate_name(max):
+    r = range(max)
+    for i in r:
+        yield "person" + str(i)
+        yield "person" + str(i)
 
 @RecognitionMemory.for_all_methods(RecognitionMemory.print_function_name)
 @qi.multiThreaded()
@@ -59,6 +64,7 @@ class RecognitionModule(object):
         self.answer_counter = 0
         self.recog_folder = "Experiment/"
         self.face_db = "faceDB"
+        self.name_generator = generate_name(99)
         
         self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
         
@@ -117,7 +123,7 @@ class RecognitionModule(object):
         self.isNameAsked = False
         self.isRegistrationAsked = False
         self.isInputAsked = False
-        self.isTabletInteraction = True # True if the interaction is from tablet, False otherwise
+        self.isTabletInteraction = False # True if the interaction is from tablet, False otherwise
         
     @qi.bind(returnType=qi.Void, paramsType=[])
     def blink(self):
@@ -376,16 +382,16 @@ class RecognitionModule(object):
                     self.showPicture()
                     if self.RB.isMultipleRecognitions:
                         self.s.RecognitionService.setImagePathMult(0)
-                    
-                    if not self.s.RecognitionService.registerPersonOnRobot(self.person[0]):
-                        self.subscribeToFaceDetected()
-                    else:               
-                        self.say("That is a good picture!")
-                        self.isRegisteringPerson = False
-                        self.isAddPersonToDB= True
-                        self.isRegistered = False
-                        self.RB.setPersonToAdd(self.person)
+
+                    self.say("That is a good picture!")
+                    self.isRegisteringPerson = False
+                    self.isAddPersonToDB= True
+                    self.isRegistered = False
+                    self.RB.setPersonToAdd(self.person)
+                    if self.isTabletInteraction:
                         self.confirmRecognition()
+                    else:
+                        self.confirmRecognitionSilent()
                 else:
                     self.takePicture()
                     self.recog_start_time = time.time()
@@ -497,6 +503,8 @@ class RecognitionModule(object):
                 self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
                 self.isRegistered = False
+                self.isRegisteringPerson = True
+                self.addPersonUsingRecogValues(self.name_generator.next()) # generate a name
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
                 self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
                 
