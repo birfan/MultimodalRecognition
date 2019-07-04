@@ -1122,14 +1122,6 @@ class RecogniserBN:
         self.personToAdd = personToAdd
         self.image_id = None
         self.num_mult_recognitions = self.def_num_mult_recognitions
-        if not self.isMemoryOnRobot:
-            textToSay = self.lookAtTablet
-            if self.isMemoryRobot and self.isRegistered:
-                textToSay += self.pleasePhrase
-            else:
-                textToSay += self.enterName
-            if self.isSpeak:
-                self.say(textToSay)
                 
     def setPersonToAdd(self, personToAdd):
         """Set person to add (used if the person is enrolled through the robot)"""
@@ -1137,33 +1129,7 @@ class RecogniserBN:
         self.personToAdd = personToAdd
         
     #---------------------------------------------FUNCTIONS TO START RECOGNITION AND CONFIRM RECOGNITION (TWO MAIN FUNCTIONS NECESSARY TO TEST THE SYSTEM!!!)---------------------------------------------# 
-        
-    def startRecognition(self, recog_results_from_file = None):
-        """
-        Calls recognise method and says the identity estimated for confirmation (if isSpeak True). Returns estimated identity ID
-        IMPORTANT: call setSessionConstant and setSessionVar and take picture before calling this function
-        """
-        identity_est = self.recognise_mem(isRegistered = self.isRegistered, recog_results_from_file = recog_results_from_file)
-        print "in StartRecognition(), identity_est is: " + identity_est
-        
-        if self.isMemoryRobot and self.isRegistered and not self.isMemoryOnRobot:
-            if identity_est == "":
-                textToSay = self.noFaceInImage
-                # TODO: take another picture from tablet
-                if recog_results_from_file is None and self.isSpeak:
-                    self.say(textToSay)
-                # self.startRecognition(recog_results_from_file = recog_results_from_file)
-            elif identity_est == self.unknown_var:
-                textToSay = self.unknownPerson
-            else:
-                identity_say = self.names[self.i_labels.index(identity_est)].split()
-                textToSay = self.askForIdentityConfirmal.replace("XX", str(identity_say[0]))
-            if recog_results_from_file is None and self.isSpeak:
-                self.say(textToSay)
-#            print textToSay
-        self.identity_est = identity_est
-        return identity_est
-    
+
     def confirmPersonIdentity(self, p_id = None, recog_results_from_file = None, isRobotLearning = True):
         """
         After the user confirms or enters the identity, the information is fed back to the system for updating the parameters.
@@ -1174,29 +1140,9 @@ class RecogniserBN:
         self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
         name = self.setPersonIdentity(isRegistered = self.isRegistered, p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
         
-        if self.isMemoryRobot:
-            if name == "":
-                textToSay = self.noFaceInImage
-                if recog_results_from_file is None and self.isSpeak:
-                    self.say(textToSay)
-                self.confirmPersonIdentity(p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
-            identity_say = name.split()
-            if p_id is not None:
-                if self.isRegistered:
-                    falseRecognitionSentence = random.choice(self.falseRecognition)
-                    textToSay = falseRecognitionSentence.replace("XX", str(identity_say[0]))
-                else:
-                    if self.userAlreadyRegistered:
-                        textToSay = self.falseRegistration.replace("XX", str(identity_say[0]))
-                    else:
-                        textToSay = self.registrationPhrase.replace("XX", str(identity_say[0]))
-            else:
-                correctRecognition = random.choice(self.correctRecognition)
-                textToSay = correctRecognition.replace("XX", str(identity_say[0]))
-            
-            if recog_results_from_file is None and self.isSpeak:
-                self.say(textToSay)
-                
+        if self.isMemoryRobot and name == "":
+            self.confirmPersonIdentity(p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
+
         calc_time = time.time() - self.start_recog_time
         if p_id is None:
             identity_real = self.identity_est
@@ -3092,10 +3038,6 @@ class RecogniserBN:
             logging.debug("Can't connect to Naoqi at ip \"" + ip + "\" on port " + str(port) +".\n"
                "Please check your script arguments. Run with -h option for help.")
             sys.exit(1)
-        self.animatedSpeechProxy = self.session.service("ALAnimatedSpeech")
-        self.tts = self.session.service("ALTextToSpeech")
-        self.configuration = {"bodyLanguageMode":"contextual"}
-        self.useSpanish = useSpanish
         self.face_service = self.session.service("ALFaceDetection")
         self.people_service = self.session.service("ALPeoplePerception")
         self.memory_service = self.session.service("ALMemory")
@@ -3228,12 +3170,6 @@ class RecogniserBN:
             self.unknownPerson = "Hello there, I am Pepper! What is your name?"
             self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!", "Just wanted to say hello, hope you are doing fine XX!", 
                                            "I feel much better every time I see you XX!", "You bring much needed sunshine to my day XX!"]
-            
-    def say(self, sentence):
-        """Say the specified sentence (NAOqi)"""
-        self.tts.setVolume(0.85)
-        self.tts.setParameter("speed", 95)
-        threading.Thread(target = self.animatedSpeechProxy.say, args=(sentence,self.configuration)).start()
 
     #---------------------------------------------FUNCTIONS FOR CROSS VALIDATION---------------------------------------------#
     

@@ -383,7 +383,6 @@ class RecognitionModule(object):
                     if self.RB.isMultipleRecognitions:
                         self.s.RecognitionService.setImagePathMult(0)
 
-                    self.say("That is a good picture!")
                     self.isRegisteringPerson = False
                     self.isAddPersonToDB= True
                     self.isRegistered = False
