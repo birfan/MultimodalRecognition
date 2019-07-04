@@ -93,6 +93,9 @@ class RecognitionModule(object):
         self.touch_bumper = None
         self.id_bumper = -1
         self.bumperPressed = False
+
+        # Activate picture shot
+        self.is_camera_shooting = False
         
         # Head touched event initialisation
         self.touch_head_event = "FrontTactilTouched"
@@ -375,13 +378,11 @@ class RecognitionModule(object):
             if value and value[0][3][0][1] > 0.0:
                 print "time taken to find height and face" + str(time.time() - self.start_people_detect_time)
                 if self.isRegisteringPerson:
-                    if self.isAskedForReposition:
-                        self.sayNoMovement("There! I can see you now!")
-                    self.sayNoMovement("\\rspd=80\\ \\emph=2\\ \\style=joyful\\ Ready? 3 \\pau=100\\ 2 \\pau=100\\ 1 \\pau=100\\ \\rspd=30\\ Cheese! \\style=neutral\\")     
-                    self.takePicture()
-                    self.showPicture()
-                    if self.RB.isMultipleRecognitions:
-                        self.s.RecognitionService.setImagePathMult(0)
+                    if self.is_camera_shooting:
+                        self.takePicture()
+                        self.showPicture()
+                        if self.RB.isMultipleRecognitions:
+                            self.s.RecognitionService.setImagePathMult(0)
 
                     self.isRegisteringPerson = False
                     self.isAddPersonToDB= True
@@ -392,7 +393,8 @@ class RecognitionModule(object):
                     else:
                         self.confirmRecognitionSilent()
                 else:
-                    self.takePicture()
+                    if self.is_camera_shooting:
+                        self.takePicture()
                     self.recog_start_time = time.time()
                     if self.isTabletInteraction:
                        self.recognise()
@@ -506,7 +508,7 @@ class RecognitionModule(object):
                 self.addPersonUsingRecogValues(self.name_generator.next()) # generate a name
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
                 self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
-                
+
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
                 print identity_name
