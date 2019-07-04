@@ -479,8 +479,8 @@ class RecognitionModule(object):
             else:
                 print "all images are discarded"
 
-            self.subscribeToHead()
-            self.detectPeople()
+        self.subscribeToHead()
+        self.detectPeople()
 
     @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
     def recogniseSilent(self):
@@ -503,11 +503,14 @@ class RecognitionModule(object):
             if not self.s.ALBasicAwareness.isEnabled():
                 self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
-                self.isRegistered = False
                 self.isRegisteringPerson = True
-                self.addPersonUsingRecogValues(self.name_generator.next()) # generate a name
+                identity_name = self.name_generator.next()
+                self.addPersonUsingRecogValues(identity_name) # generate a name
+                self.isRegistered = True
+
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
-                self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
+                #self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
+                self.subscribeToFaceDetected()
 
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
@@ -521,6 +524,7 @@ class RecognitionModule(object):
 
             self.subscribeToHead()
             self.detectPeople()
+
         return self.isRegistered, self.identity_est, identity_name
     
     @qi.bind(returnType=qi.Void, paramsType=[]) 
