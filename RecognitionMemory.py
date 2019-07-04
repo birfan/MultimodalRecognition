@@ -1158,7 +1158,7 @@ class RecogniserBN:
     
     #---------------------------------------------FUNCTIONS FOR RECOGNITION---------------------------------------------# 
 
-    def recognise_mem(self, isRegistered = True, recog_results_from_file = None):
+    def recognise_mem(self, recog_results_from_file = None):
         """
         Recognise the user using the network:
         (1) Load BN if not already loaded
@@ -2248,7 +2248,7 @@ class RecogniserBN:
                     init_recog_values = [x for x in init_list if x[6] == numRecognition][0]
                     recog_results = init_recog_values[1:6]
                                                                
-            identity_est = self.startRecognition(recog_results) # get the estimated identity from the recognition network
+            identity_est = self.recognise_mem(recog_results) # get the estimated identity from the recognition network
             
             if identity_est == "":
                 numNoFaceImages += 1
@@ -3367,13 +3367,13 @@ class RecogniserBN:
             imagePath = self.imagePath + str(bin_folder) + str(numBin) + "/" + str(binImage) + ".jpg"
             self.setImageToCopy(imagePath)
                                                
-            identity_est = self.startRecognition() # get the estimated identity from the recognition network
+            identity_est = self.recognise_mem() # get the estimated identity from the recognition network
             
             print "identity_est:" + str(identity_est)
                        
             if identity_est == "":
                 time.sleep(0.5)
-                identity_est = self.startRecognition() # get the estimated identity from the recognition network
+                identity_est = self.recognise_mem() # get the estimated identity from the recognition network
                 if identity_est == "":
                     numNoFaceImages += 1
                     self.saveImageToTablet(idPersonNew, isDiscardedImage=True, imageName=validationImage)

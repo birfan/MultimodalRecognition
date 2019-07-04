@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # set session variables (needs to be called before each person is recognised)
     RB.setSessionVar(isRegistered = isRegistered, isAddPersonToDB = isAddPersonToDB)
 
-    identity_est = RB.startRecognition() # get the estimated identity from the recognition network
+    identity_est = RB.recognise_mem() # get the estimated identity from the recognition network
     p_id = None
     isRecognitionCorrect = False
     if isMemoryRobot:

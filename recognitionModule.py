@@ -436,7 +436,7 @@ class RecognitionModule(object):
         self.isRegisteringPerson = False
         self.RB.setSessionVar(isRegistered = self.isRegistered, isAddPersonToDB = self.isAddPersonToDB)    
         
-        self.identity_est = self.RB.startRecognition() # get the estimated identity from the recognition network
+        self.identity_est = self.RB.recognise_mem() # get the estimated identity from the recognition network
         print "time for recognition:" + str(time.time()-self.recog_start_time)
         print "In recognise(), identity_est = " + str(self.identity_est)
         self.counter = 0 
@@ -488,7 +488,7 @@ class RecognitionModule(object):
         self.isRegisteringPerson = False
         self.RB.setSessionVar(isRegistered = self.isRegistered, isAddPersonToDB = self.isAddPersonToDB)    
         
-        self.identity_est = self.RB.startRecognition() # get the estimated identity from the recognition network
+        self.identity_est = self.RB.recognise_mem() # get the estimated identity from the recognition network
         print "time for recognition:" + str(time.time()-self.recog_start_time)
         self.counter = 0 
         self.isRecognitionCorrect = False
