@@ -1143,6 +1143,19 @@ class RecognitionModule(object):
         self.stop()
         self.logger.info("RecognitionModule finished.")
 
+    def run(self):
+        self.onFaceDetected()
+
+
+    @qi.bind(returnType=None, paramsType=(qi.List(qi.String), qi.List(qi.Float), qi.Float, qi.Float, qi.String, qi.Float, qi.Float, qi.Float, qi.List(qi.String)))
+    def format_okao_data(self, face_names, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
+        assert len(face_names) == len(face_confidences)
+        face_data = [recognition_accuracy, [ [name, conf] for name, conf in zip(face_names, face_confidences)]]
+        gender_data = [gender, gender_confidence]
+        age_data = [long(age), age_confidence]
+        height_data = [height, height_confidence]
+        self.RB.set_face_recog_results([face_data, gender_data, age_data, height_data, timestamp])
+
 if __name__ == "__main__":
     stk.runner.run_service(RecognitionModule)
 
