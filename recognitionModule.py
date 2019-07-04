@@ -377,6 +377,14 @@ class RecognitionModule(object):
 
             if value and value[0][3][0][1] > 0.0:
                 print "time taken to find height and face" + str(time.time() - self.start_people_detect_time)
+                if self.is_camera_shooting:
+                    self.takePicture()
+                self.recog_start_time = time.time()
+                if self.isTabletInteraction:
+                   self.recognise()
+                else:
+                    self.recogniseSilent()
+
                 if self.isRegisteringPerson:
                     if self.is_camera_shooting:
                         self.takePicture()
@@ -392,14 +400,7 @@ class RecognitionModule(object):
                         self.confirmRecognition()
                     else:
                         self.confirmRecognitionSilent()
-                else:
-                    if self.is_camera_shooting:
-                        self.takePicture()
-                    self.recog_start_time = time.time()
-                    if self.isTabletInteraction:
-                       self.recognise()
-                    else:
-                        self.recogniseSilent()
+
             else:
                 if time.time() - self.start_face_detect_time <= self.faceDetectTimer:
                     self.subscribeToFaceDetected()
@@ -510,7 +511,7 @@ class RecognitionModule(object):
 
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
                 #self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
-                self.subscribeToFaceDetected()
+                # self.subscribeToFaceDetected()
 
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
