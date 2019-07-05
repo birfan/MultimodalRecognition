@@ -69,7 +69,6 @@ class RecognitionModule(object):
         self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
         
         self.isRegistered = True
-        self.isMemoryRobot = True
         self.isAddPersonToDB = False
         self.recog_end_time = time.time()
         self.recognised_people = []
@@ -255,15 +254,14 @@ class RecognitionModule(object):
         
         self.RB = RecognitionMemory.RecogniserBN()
 
-        self.isMemoryRobot = True
         self.isDBinCSV = True
         self.isMultipleRecognitions = False
         self.numMultRecognitions = 3
         
         self.RB.setFilePaths(self.recog_folder)
-        self.RB.connectToRobot(self.r_ip, port = 9559, useSpanish = False, isImageFromTablet = True, isMemoryOnRobot = True, imagePath = image_path)
+        self.RB.connectToRobot(self.r_ip, port = 9559, useSpanish = False, isImageFromTablet = True, imagePath = image_path)
         self.s.RecognitionService.setHeadAngles(-10.0)
-        self.RB.setSessionConstant(isMemoryRobot = self.isMemoryRobot, isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
+        self.RB.setSessionConstant(isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
 
         if os.path.isfile(self.recog_folder + self.face_db):
             self.RB.useFaceDetectionDB("faceDB")

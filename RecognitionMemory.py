@@ -202,8 +202,6 @@ class RecogniserBN:
         """ROBOT PARAMETERS"""
         self.useSpanish = False # speak Spanish (for Colombia experiments)
         self.isSpeak = True # if False, the robot will not speak
-        self.isMemoryRobot = True # is memory used or not (if False, calculations in confirmPersonIdentity will be skipped, and the identity will not be demanded)
-        self.isMemoryOnRobot = False # is the memory on the robot (for experiments with the robot using recognitionModule, this should be True - except in Colombia)
         self.isImageFromTablet = False  # is image received from the tablet or taken by the robot
         """END OF ROBOT PARAMETERS"""
         
@@ -1099,12 +1097,11 @@ class RecogniserBN:
     
     #---------------------------------------------FUNCTIONS TO SET SESSION CONSTANT/VARIABLES ---------------------------------------------# 
 
-    def setSessionConstant(self, isMemoryRobot = True, isDBinCSV = False, isMultipleRecognitions = False, defNumMultRecog = 3, isSaveRecogFiles = True, isSpeak = True):
+    def setSessionConstant(self, isDBinCSV = False, isMultipleRecognitions = False, defNumMultRecog = 3, isSaveRecogFiles = True, isSpeak = True):
         """
         Set session constants: isMemoryRobot, isDBinCSV, isMultipleRecognitions, defNumMultRecog, isSaveRecogFiles, isSpeak from the file 
         isBNLoaded = False, isBNSaved = False, and sentences for recognition are loaded
         """
-        self.isMemoryRobot = isMemoryRobot
         self.isDBinCSV = isDBinCSV
         self.isMultipleRecognitions = isMultipleRecognitions
         self.def_num_mult_recognitions = defNumMultRecog
@@ -1140,7 +1137,7 @@ class RecogniserBN:
         self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
         name = self.setPersonIdentity(isRegistered = self.isRegistered, p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
         
-        if self.isMemoryRobot and name == "":
+        if name == "":
             self.confirmPersonIdentity(p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
 
         calc_time = time.time() - self.start_recog_time
@@ -1419,7 +1416,7 @@ class RecogniserBN:
             self.num_mult_recognitions = self.def_num_mult_recognitions
             start_recognise_time = time.time()
             
-            # (6)
+            # (6) # Do another recognition over updated BN to be sure recognition works and BN needs another update
             if self.isMultipleRecognitions:
                 if recog_results_from_file is None:
                     # PARALLEL
@@ -2049,10 +2046,8 @@ class RecogniserBN:
 
     def isAlreadyRegistered(self, p_id):
         """Checks if the user is already registered: if user in i_labels and occurrence is greater than 1, returns True, else False"""
-        if p_id in self.i_labels and self.occurrences[self.i_labels.index(p_id)][0] > 0:
-            return True
-        return False
-    
+        return p_id in self.i_labels and self.occurrences[self.i_labels.index(p_id)][0] > 0
+
     #---------------------------------------------FUNCTIONS FOR FILES---------------------------------------------# 
     
     def resetFilePaths(self):
@@ -2947,87 +2942,87 @@ class RecogniserBN:
                 else:
                     self.image_id =  str(self.num_recognitions+1) + "_" + p_id + "_" + "1"      
 
-    def saveImageToTablet(self, p_id, num_recog=None, num_saves=None, isDiscardedImage=False, imageName=None, identity_est = None, isRegistered= False):
-        """
-        Saves images from the specified directory (self.imagePath or self.imageToCopy) to a folder specifying the correctness of the recognition: 
-        Known_True/, Known_Unknown/, Known_False/, Unknown_True/, Unknown_False/ 
-        Name of image:
-        single recognition: str(num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + ".jpg"
-        multiple recognitions: str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + "-" + str(num_saves) +".jpg" 
-        """
-        # TODO: check with windows (/ might need to be \ instead)
-        
-        if self.isMemoryOnRobot:
-            image_dir = self.image_save_dir
-
-            if self.imageToCopy is not None:
-                temp_image = self.imageToCopy
-            else:
-                temp_image = self.imagePath
-        else:
-            cur_dir = os.path.dirname(os.path.realpath(__file__))
-            temp_dir = os.path.abspath(os.path.join(cur_dir, '../..', 'cam')) + "/"
-            image_dir = os.path.abspath(os.path.join(cur_dir, '', 'images')) + "/"
-
-            if self.imageToCopy is not None:
-                temp_image = self.imageToCopy
-            else:
-                temp_image = temp_dir + "temp.jpg"
-                
-        if isDiscardedImage:
-            image_dir += "discarded/"
-        elif identity_est is not None:
-            if isRegistered:
-                if identity_est == p_id:
-                    image_dir += "Known_True/"
-                elif identity_est == self.unknown_var:
-                    image_dir += "Known_Unknown/"
-                else:
-                    image_dir += "Known_False/"
-            else:
-                if identity_est == self.unknown_var:
-                    image_dir += "Unknown_True/"
-                else:
-                    image_dir += "Unknown_False/"
-
-        if p_id in self.i_labels:
-            num_matches = self.occurrences[self.i_labels.index(p_id)][0] + 1
-        else:
-            num_matches = 1
-        orig_matches = num_matches
-        counter = 0 
-        for i in range(0,4):
-            if num_matches/10 != 0:
-                num_matches = num_matches/10
-                counter += 1 
-            else:
-                counter += 1 
-                break
-
-        if self.isMultipleRecognitions:
-
-            if imageName is not None:
-                to_rep = image_dir + imageName + "-" + str(num_recog) + ".jpg"
-            else:
-                to_rep = str(num_recog) + ".jpg"
-            temp_image = self.imagePath.replace(".jpg", to_rep)
-
-            save_name = image_dir + str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + "-" + str(num_saves) +".jpg" 
-
-        else:
-            if imageName is not None:
-                save_name = image_dir + imageName + ".jpg"  
-            else: 
-                save_name = image_dir + str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + ".jpg"
-        
-        shutil.copy2(temp_image,save_name)
-
-        image_id = str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches)
-        return image_id
-            
+    # def saveImageToTablet(self, p_id, num_recog=None, num_saves=None, isDiscardedImage=False, imageName=None, identity_est = None, isRegistered= False):
+    #     """
+    #     Saves images from the specified directory (self.imagePath or self.imageToCopy) to a folder specifying the correctness of the recognition:
+    #     Known_True/, Known_Unknown/, Known_False/, Unknown_True/, Unknown_False/
+    #     Name of image:
+    #     single recognition: str(num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + ".jpg"
+    #     multiple recognitions: str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + "-" + str(num_saves) +".jpg"
+    #     """
+    #     # TODO: check with windows (/ might need to be \ instead)
+    #
+    #     if self.isMemoryOnRobot:
+    #         image_dir = self.image_save_dir
+    #
+    #         if self.imageToCopy is not None:
+    #             temp_image = self.imageToCopy
+    #         else:
+    #             temp_image = self.imagePath
+    #     else:
+    #         cur_dir = os.path.dirname(os.path.realpath(__file__))
+    #         temp_dir = os.path.abspath(os.path.join(cur_dir, '../..', 'cam')) + "/"
+    #         image_dir = os.path.abspath(os.path.join(cur_dir, '', 'images')) + "/"
+    #
+    #         if self.imageToCopy is not None:
+    #             temp_image = self.imageToCopy
+    #         else:
+    #             temp_image = temp_dir + "temp.jpg"
+    #
+    #     if isDiscardedImage:
+    #         image_dir += "discarded/"
+    #     elif identity_est is not None:
+    #         if isRegistered:
+    #             if identity_est == p_id:
+    #                 image_dir += "Known_True/"
+    #             elif identity_est == self.unknown_var:
+    #                 image_dir += "Known_Unknown/"
+    #             else:
+    #                 image_dir += "Known_False/"
+    #         else:
+    #             if identity_est == self.unknown_var:
+    #                 image_dir += "Unknown_True/"
+    #             else:
+    #                 image_dir += "Unknown_False/"
+    #
+    #     if p_id in self.i_labels:
+    #         num_matches = self.occurrences[self.i_labels.index(p_id)][0] + 1
+    #     else:
+    #         num_matches = 1
+    #     orig_matches = num_matches
+    #     counter = 0
+    #     for i in range(0,4):
+    #         if num_matches/10 != 0:
+    #             num_matches = num_matches/10
+    #             counter += 1
+    #         else:
+    #             counter += 1
+    #             break
+    #
+    #     if self.isMultipleRecognitions:
+    #
+    #         if imageName is not None:
+    #             to_rep = image_dir + imageName + "-" + str(num_recog) + ".jpg"
+    #         else:
+    #             to_rep = str(num_recog) + ".jpg"
+    #         temp_image = self.imagePath.replace(".jpg", to_rep)
+    #
+    #         save_name = image_dir + str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + "-" + str(num_saves) +".jpg"
+    #
+    #     else:
+    #         if imageName is not None:
+    #             save_name = image_dir + imageName + ".jpg"
+    #         else:
+    #             save_name = image_dir + str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches) + ".jpg"
+    #
+    #     shutil.copy2(temp_image,save_name)
+    #
+    #     image_id = str(self.num_recognitions + 1) + "_" + p_id + "_" + str(orig_matches)
+    #     return image_id
+    #
     #---------------------------------------------FUNCTIONS FOR THE ROBOT---------------------------------------------#
 
-    def connectToRobot(self, ip, port=9559, useSpanish = False, isImageFromTablet = True, isMemoryOnRobot = False, imagePath = ""):
+    def connectToRobot(self, ip, port=9559, useSpanish = False, isImageFromTablet = True, imagePath = ""):
         """Connect to the robot and set robot parameters of the recognition (NAOqi)"""
         self.robot_ip = ip
         self.robot_port = port
@@ -3043,9 +3038,7 @@ class RecogniserBN:
         self.memory_service = self.session.service("ALMemory")
         self.isImageFromTablet = isImageFromTablet
         
-        self.isMemoryOnRobot = isMemoryOnRobot
-        if self.isMemoryOnRobot:
-            self.isDBinCSV = True
+        self.isDBinCSV = True
         self.imagePath = imagePath
         
 
@@ -3067,13 +3060,12 @@ class RecogniserBN:
 
         """
         if self.recog_results_from_file is None: 
-            if self.isMemoryOnRobot:
-                recog_results = self.face_recog_results  # self.recog_service.recognisePerson()
-            else:
-                self.event_recog = threading.Event()
-                self.subscribeToRecognitionResultsUpdated()
-                self.event_recog.wait()
-                recog_results = self.recog_temp
+            recog_results = self.face_recog_results  # self.recog_service.recognisePerson()
+            # else:
+            #     self.event_recog = threading.Event()
+            #     self.subscribeToRecognitionResultsUpdated()
+            #     self.event_recog.wait()
+            #     recog_results = self.recog_temp
         else:
             if self.isMultipleRecognitions:
                 recog_results = self.recog_results_from_file[num_recog]
@@ -3140,7 +3132,6 @@ class RecogniserBN:
                 # print file
                 for i in range(0,2):
                     self.recog_results_from_file = None
-                    self.isMemoryOnRobot = True
                     self.isMultipleRecognitions = False
                     recog_results = self.recognisePerson()
                     # print recog_results
@@ -3163,13 +3154,12 @@ class RecogniserBN:
         self.falseRegistration = "But we have met before! Nice to see you again XX!"
         self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!"]
         self.noFaceInImage = "I am sorry, there seems to be a problem with the image. Could you look at the tablet again please?"
-        if self.isMemoryOnRobot:
-            self.registrationPhrase = "Nice to meet you XX!"
-            self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Nice to see you again XX!", "You look different today XX, is it a new haircut?", 
-                                         "Ehehe, I was kidding. Of course it is you XX!", "Well we robots can be wrong sometimes, but we have you, XX, to make us better."]
-            self.unknownPerson = "Hello there, I am Pepper! What is your name?"
-            self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!", "Just wanted to say hello, hope you are doing fine XX!", 
-                                           "I feel much better every time I see you XX!", "You bring much needed sunshine to my day XX!"]
+        self.registrationPhrase = "Nice to meet you XX!"
+        self.falseRecognition = ["Ah, of course, my apologies! My eyes seem to fail me.. Nice to see you again XX!", "You look different today XX, is it a new haircut?",
+                                     "Ehehe, I was kidding. Of course it is you XX!", "Well we robots can be wrong sometimes, but we have you, XX, to make us better."]
+        self.unknownPerson = "Hello there, I am Pepper! What is your name?"
+        self.correctRecognition = ["I knew it was you, just wanted to be sure!", "You look very good today XX!", "Just wanted to say hello, hope you are doing fine XX!",
+                                       "I feel much better every time I see you XX!", "You bring much needed sunshine to my day XX!"]
 
     #---------------------------------------------FUNCTIONS FOR CROSS VALIDATION---------------------------------------------#
     
