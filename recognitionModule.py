@@ -504,7 +504,7 @@ class RecognitionModule(object):
                 self.isRegisteringPerson = True
                 identity_name = self.name_generator.next()
                 self.addPersonUsingRecogValues(identity_name) # generate a name
-                self.isRegistered = True
+                # self.isRegistered = True /// May works better if is False (see ConfirmRecognitionSilent)
 
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
                 #self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
@@ -548,13 +548,10 @@ class RecognitionModule(object):
     def confirmRecognition(self):
         p_id = None
         self.confirm_recognition_start = time.time()
-        if self.isMemoryRobot and self.isRegistered:
+        if self.isRegistered:
             p_id = str(self.person[0])
             if self.identity_est == p_id:
-                self.isRecognitionCorrect = True # True if the name is confirmed by the patient
-                
-        if self.isRecognitionCorrect:
-            self.RB.confirmPersonIdentity() # save the network, analysis data, csv for learning and picture of the person in the tablet
+                self.RB.confirmPersonIdentity()  # save the network, analysis data, csv for learning and picture of the person in the tablet
         else:
             p_id = str(self.person[0])
             self.RB.confirmPersonIdentity(p_id)
@@ -582,21 +579,16 @@ class RecognitionModule(object):
         
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognitionSilent(self):
-        p_id = None
+        p_id = str(self.person[0])
         self.confirm_recognition_start = time.time()
-        if self.isMemoryRobot and self.isRegistered:
-            p_id = str(self.person[0])
-            if self.identity_est == p_id:
-                self.isRecognitionCorrect = True # True if the name is confirmed by the patient
-                
-        if self.isRecognitionCorrect:
+        if self.isRegistered and self.identity_est == p_id:
             self.RB.confirmPersonIdentity() # save the network, analysis data, csv for learning and picture of the person in the tablet
         else:
-            p_id = str(self.person[0])
             self.RB.confirmPersonIdentity(p_id)
+
         self.RB.saveFaceDetectionDB()
         self.recog_end_time = time.time()
-        print "confirmation time:" + str(self.recog_end_time- self.confirm_recognition_start) 
+        print "confirmation time:" + str(self.recog_end_time - self.confirm_recognition_start)
         if self.isAddPersonToDB:
             self.loadDB(self.RB.db_file)
 
