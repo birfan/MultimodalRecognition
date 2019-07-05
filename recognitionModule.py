@@ -67,6 +67,7 @@ class RecognitionModule(object):
         self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
         
         self.isRegistered = True
+        self.isUnknown = False
         self.isAddPersonToDB = False
         self.recog_end_time = time.time()
         self.recognised_people = []
@@ -116,7 +117,7 @@ class RecognitionModule(object):
         
         self.faceDetectTimer = 5.0
         
-        self.isRegisteringPerson = False
+        self.hasAnalysedPerson = False
         self.isRecognitionOn = False
         self.identity_est = ""
         self.isAskedForReposition = False
@@ -298,7 +299,7 @@ class RecognitionModule(object):
             
         self.s.ALAutonomousLife.setRobotOffsetFromFloor(0.1)
                                
-        self.isRegisteringPerson = False
+        self.hasAnalysedPerson = False
             
         self.unsubscribeFacePeople()
         self.subscribeFacePeople()
@@ -382,14 +383,14 @@ class RecognitionModule(object):
                 else:
                     self.recogniseSilent()
 
-                if self.isRegisteringPerson:
+                if self.hasAnalysedPerson:
                     if self.is_camera_shooting:
                         self.takePicture()
                         self.showPicture()
                         if self.RB.isMultipleRecognitions:
                             self.s.RecognitionService.setImagePathMult(0)
 
-                    self.isRegisteringPerson = False
+                    self.hasAnalysedPerson = False
                     self.RB.setPersonToAdd(self.person)
                     if self.isTabletInteraction:
                         self.confirmRecognition()
@@ -432,7 +433,7 @@ class RecognitionModule(object):
         self.isRegistered = True
         self.isAddPersonToDB = False
         self.isConfirmRegistration = False
-        self.isRegisteringPerson = False
+        self.hasAnalysedPerson = False
         self.RB.setSessionVar(isRegistered = self.isRegistered, isAddPersonToDB = self.isAddPersonToDB)    
         
         self.identity_est = self.RB.recognise_mem() # get the estimated identity from the recognition network
@@ -481,33 +482,22 @@ class RecognitionModule(object):
 
     @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
     def recogniseSilent(self):
+        self.isUnknown = False
         self.isRegistered = True
-        self.isAddPersonToDB = False
-        self.isConfirmRegistration = False
-        self.isRegisteringPerson = False
-        self.RB.setSessionVar(isRegistered = self.isRegistered, isAddPersonToDB = self.isAddPersonToDB)    
+        self.hasAnalysedPerson = False
+        self.RB.setSessionVar(isRegistered=self.isRegistered, isAddPersonToDB=False)
         
         self.identity_est = self.RB.recognise_mem() # get the estimated identity from the recognition network
         print "time for recognition:" + str(time.time()-self.recog_start_time)
-        self.counter = 0 
-        self.isRecognitionCorrect = False
-        self.id_tablet = None
-        self.id_confirm = None
-        identity_name = ""
         if self.identity_est:
-            self.isRecognitionOn = True
-            self.subscribeToLeftBumper()
+            self.hasAnalysedPerson = True
             if not self.s.ALBasicAwareness.isEnabled():
                 self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
-                self.isRegisteringPerson = True
-                identity_name = self.name_generator.next()
-                self.addPersonUsingRecogValues(identity_name) # generate a name
-                # self.isRegistered = True /// May works better if is False (see ConfirmRecognitionSilent)
-
+                self.isUnknown = True
+                identity_name = self.name_generator.next()  # generate a name
+                self.addPersonUsingRecogValues(identity_name)
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
-                #self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
-                # self.subscribeToFaceDetected()
 
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
@@ -518,6 +508,7 @@ class RecognitionModule(object):
 
         else:
             print "all images are discarded"
+            identity_name = ""
 
         self.subscribeToHead()
         self.detectPeople()
@@ -578,19 +569,7 @@ class RecognitionModule(object):
         
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognitionSilent(self):
-        p_id = str(self.person[0])
-        self.confirm_recognition_start = time.time()
-        if self.isRegistered and self.identity_est == p_id:
-            self.RB.confirmPersonIdentity() # save the network, analysis data, csv for learning and picture of the person in the tablet
-        else:
-            self.RB.confirmPersonIdentity(p_id)
-
-        self.RB.saveFaceDetectionDB()
-        self.recog_end_time = time.time()
-        print "confirmation time:" + str(self.recog_end_time - self.confirm_recognition_start)
-        if self.isAddPersonToDB:
-            self.loadDB(self.RB.db_file)
-
+        self.RB.confirmPersonIdentity(name=self.person[0], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning and picture of the person in the tablet
         self.subscribeToHead()
         self.detectPeople()
                 
@@ -661,12 +640,12 @@ class RecognitionModule(object):
                 to_rep = str(num_recog) + ".jpg"
                 file_name_new = file_name.replace(".jpg", to_rep)
                 self.photo_capture.takePicture( image_dir, file_name_new )
-                if num_recog == 0 and self.isRegisteringPerson:
+                if num_recog == 0 and self.hasAnalysedPerson:
                     self.sayNoMovement("Let me see how it looks like")
                 # print time.time() - temp_start
         else:
             self.photo_capture.takePicture( image_dir, file_name )
-            if self.isRegisteringPerson:
+            if self.hasAnalysedPerson:
                 self.sayNoMovement("Let me see how it looks like")
         print "time to take pictures: " + str(time.time() - pic_start_time)
         if not self.s.ALBasicAwareness.isEnabled():
@@ -961,7 +940,7 @@ class RecognitionModule(object):
             self.RB.saveImageAfterRecognition(False, str(self.person[0])) # save the previous images before replacing them
 #             print self.person
             self.say("Great! Now I will take a picture, so I can remember you better the next time I see you!")
-            self.isRegisteringPerson = True
+            self.hasAnalysedPerson = True
             self.isAskedForReposition = False
             self.subscribeToFaceDetected()
         elif value == "timeout":

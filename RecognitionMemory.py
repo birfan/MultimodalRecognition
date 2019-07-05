@@ -1127,7 +1127,7 @@ class RecogniserBN:
         
     #---------------------------------------------FUNCTIONS TO START RECOGNITION AND CONFIRM RECOGNITION (TWO MAIN FUNCTIONS NECESSARY TO TEST THE SYSTEM!!!)---------------------------------------------# 
 
-    def confirmPersonIdentity(self, p_id = None, recog_results_from_file = None, isRobotLearning = True):
+    def confirmPersonIdentity(self, name=None, is_known=True, recog_results_from_file=None):
         """
         After the user confirms or enters the identity, the information is fed back to the system for updating the parameters.
         Calls setPersonIdentity method. If isSpeak, the system will give feedback depending if the user is correctly recognised or not.
@@ -1135,16 +1135,15 @@ class RecogniserBN:
         IMPORTANT: call startRecognition before calling this function, and then ask for name from the person"""
         c_time_t = time.time()
         self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
-        name = self.setPersonIdentity(isRegistered = self.isRegistered, p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
-        
         if name == "":
-            self.confirmPersonIdentity(p_id = p_id, recog_results_from_file = recog_results_from_file, isRobotLearning=isRobotLearning)
+            name = None
+        name = self.setPersonIdentity(name, is_known, recog_results_from_file)
 
         calc_time = time.time() - self.start_recog_time
-        if p_id is None:
+        if name is None:
             identity_real = self.identity_est
         else:
-            identity_real = p_id
+            identity_real = name
         time_before_save = time.time()
         
         if self.isSaveRecogFiles:
@@ -1328,7 +1327,7 @@ class RecogniserBN:
     #---------------------------------------------FUNCTIONS FOR SETTING THE IDENTITY OF THE PERSON AFTER CONFIRMATION---------------------------------------------# 
 
 
-    def setPersonIdentity(self, isRegistered = True, p_id = None, recog_results_from_file = None, isRobotLearning = True):
+    def setPersonIdentity(self, name, is_known, recog_results_from_file):
         """
         This method saves the information from the recognise function with the actual identity of the person:
         (1) Initial recognition values are saved
@@ -1347,8 +1346,7 @@ class RecogniserBN:
         self.recog_results_from_file = recog_results_from_file
         self.discarded_data = []
         isPrevSavedToAnalysis = False
-        start_set_person = time.time()
-        
+
         if self.isSaveRecogFiles:
             # (1) initial recognition file is saved here, because in the case that the recognition was ignored (either due to wrong input from the user
             # or because of timeout), the data will not be written unless there is a confirmation.
@@ -1358,64 +1356,39 @@ class RecogniserBN:
             else:
                  self.saveInitialRecognitionCSV(self.initial_recognition_file, self.recog_results, self.identity_est)
 
-        end_save_init_recog_time = time.time()
-        if self.isDebugMode:
-            print "time to save initial recognition:" + str(end_save_init_recog_time-start_set_person)
-        if p_id is None:
-            p_id = self.identity_est
-        if self.isAlreadyRegistered(p_id):
-            self.userAlreadyRegistered = True
-            if not isRegistered:
-                logging.debug("The user is already registered.")
-        else:
-            self.userAlreadyRegistered = False
-            if isRegistered:
-                isRegistered = False
-                self.isRegistered = False
-        if self.isDebugMode:
-            print "time to check if user is in db: " + str(time.time()-end_save_init_recog_time)
-             
-        if not isRegistered:
+        id = self.identity_est
+        if not is_known and self.isAlreadyRegistered(id):
+            print "Already Registered in Database while marked unkown... Please Investigate"
+            exit()
+
             # NOTE: make sure previous images are saved here! (If the images are not saved during enrollment by the robot, call saveImageAfterRecognition(isRegistered, p_id) to save them here)
             
-            if not self.userAlreadyRegistered:
-                if self.num_people > 1 and self.update_prob_unknown_method == "evidence":
+        if not is_known:
+
+            if self.num_people > 1:
+                if self.update_prob_unknown_method == "evidence":
                     # (3)
                     if self.isMultipleRecognitions:
                         for num_recog in range(0, self.num_mult_recognitions):
                             self.updateProbabilities(self.unknown_var, self.ie_list[num_recog], self.evidence_list[num_recog], num_recog)
                     else:
-                        self.updateProbabilities(self.unknown_var, self.ie, self.evidence_list[0])  
-                        
-                time_after_update_unknown = time.time()
-                if self.isDebugMode:
-                    print "time to learn:" + str(time.time() - time_after_update_unknown)
-            
-            if self.num_people > 1:
+                        self.updateProbabilities(self.unknown_var, self.ie, self.evidence_list[0])
+
                 # (4)
-                start_save_analysis_time = time.time()
                 if self.isLogMode and self.isSaveRecogFiles:
                     self.analysis_data_list = []
                     if self.isMultipleRecognitions:
                         for num_recog in range(0, self.num_mult_recognitions):
-                            self.saveAnalysisFile(self.recog_results_list[num_recog], p_id, self.ie_list[num_recog], isPrevSavedToAnalysis, num_recog = num_recog)
+                            self.saveAnalysisFile(self.recog_results_list[num_recog], id, self.ie_list[num_recog], isPrevSavedToAnalysis, num_recog = num_recog)
                     else:
-                        self.saveAnalysisFile(self.recog_results, p_id, self.ie, isPrevSavedToAnalysis)
+                        self.saveAnalysisFile(self.recog_results, id, self.ie, isPrevSavedToAnalysis)
                 isPrevSavedToAnalysis = True
-                if self.isDebugMode:
-                    print "save analysis to db time: " + str(time.time() - start_save_analysis_time)
-            
-            if self.isAddPersonToDB:
-                # (5)
-                start_add_person_time = time.time()
-                self.addPersonToBN(self.personToAdd)
-                time.sleep(0.1)
-                if self.isDebugMode:
-                    print "time to add person" + str(time.time() - start_add_person_time)
-            
+
+            # (5)
+            self.addPersonToBN(self.personToAdd)
+            time.sleep(0.1)
             self.num_mult_recognitions = self.def_num_mult_recognitions
-            start_recognise_time = time.time()
-            
+
             # (6) # Do another recognition over updated BN to be sure recognition works and BN needs another update
             if self.isMultipleRecognitions:
                 if recog_results_from_file is None:
@@ -1428,19 +1401,19 @@ class RecogniserBN:
                     num_rr = 0
                     while num_rr < self.num_mult_recognitions:
                         # if there is no face in the image, discard it from the results
-                        
+
                         if not joint_results[num_rr]:
                             joint_results.pop(num_rr)
                             self.discarded_data.append(num_rr)
                             self.num_mult_recognitions -= 1
                         else:
                             num_rr += 1
-    
+
                     if self.num_mult_recognitions == 0:
                         print "Images are all discarded. No face detected in the images"
                         self.num_mult_recognitions = self.def_num_mult_recognitions
                         return ""
-                    
+
                     self.recog_results_list = [i[0] for i in joint_results]
                     self.mult_recognitions_list = [i[1] for i in joint_results]
                     self.ie_list = [i[2] for i in joint_results]
@@ -1455,45 +1428,33 @@ class RecogniserBN:
                             # if there is no face in the image, discard it from the results
                             self.discarded_data.append(num_recog)
                             continue
-                        self.mult_recognitions_list.append(self.recog_results) 
+                        self.mult_recognitions_list.append(self.recog_results)
                         self.recog_results_list.append(self.recog_results)
                     self.num_mult_recognitions -= len(self.discarded_data)
-                    
+
                     if self.num_mult_recognitions == 0:
-                        print "Images are all discarded. No face detected in the images"
                         self.num_mult_recognitions = self.def_num_mult_recognitions
                         return ""
-                
+
             else:
                 self.recog_results = self.recognisePerson()
                 if not self.recog_results:
-                    self.recog_results = self.recognisePerson() # try again, ALFaceDetection is unreliable, it doesn't work sometimes. It is good to run it again to make sure it doesn't recognise a face
-                    if not self.recog_results:
-                        print "Image is discarded. No face detected in the image"
-                        self.num_mult_recognitions = self.def_num_mult_recognitions
-                        return ""
-            if self.isDebugMode:
-                print "time to recognise for registering:" + str(time.time() - start_recognise_time)
+                    print "Image is discarded. No face detected in the image"
+                    self.num_mult_recognitions = self.def_num_mult_recognitions
+                    return ""
 
-        start_image_save_time = time.time()
-        
         # (7)
-        if self.isSaveRecogFiles:
-            self.saveImageAfterRecognition(isRegistered, p_id)
-        if self.isDebugMode:
-            print "time to save images for recognition:" + str(time.time() - start_image_save_time)
-        
         if self.num_people < 2 and self.isSaveRecogFiles:
             # (9)
             if self.isMultipleRecognitions:
                 for num_recog in range(0, self.num_mult_recognitions):
                     self.nonweighted_evidence = self.mult_recognitions_list[num_recog]
-                    self.saveRecogniserCSV(self.recogniser_csv_file, p_id, num_recog = num_recog)
+                    self.saveRecogniserCSV(self.recogniser_csv_file, id, num_recog = num_recog)
             else:
                 self.nonweighted_evidence = self.recog_results
-                self.saveRecogniserCSV(self.recogniser_csv_file, p_id)
+                self.saveRecogniserCSV(self.recogniser_csv_file, id)
         else:
-            if not isRegistered:
+            if not is_known:
                 # get the inference from the final recognition
                 self.evidence_list = []
                 start_posterior_calc = time.time()
@@ -1534,28 +1495,28 @@ class RecogniserBN:
                     self.recog_results = self.recog_results_list[num_recog]
                     self.ie = self.ie_list[num_recog]
                     
-                    self.updateProbabilities(p_id, self.ie, self.evidence_list[num_recog]) # (8)
+                    self.updateProbabilities(id, self.ie, self.evidence_list[num_recog]) # (8)
                     if self.isSaveRecogFiles:
                         if not self.isBNSaved:
                             self.saveBN(num_recog = num_recog) # (10)
                         
-                        self.saveRecogniserCSV(self.recogniser_csv_file, p_id, num_recog = num_recog) # (9)
-                        self.updateDB(self.db_file, p_id) # (11)
+                        self.saveRecogniserCSV(self.recogniser_csv_file, id, num_recog = num_recog) # (9)
+                        self.updateDB(self.db_file, id) # (11)
                         if self.isLogMode:
-                            self.saveAnalysisFile(self.recog_results, p_id, self.ie, isPrevSavedToAnalysis, num_recog = num_recog) # (9)
+                            self.saveAnalysisFile(self.recog_results, id, self.ie, isPrevSavedToAnalysis, num_recog = num_recog) # (9)
             else:
                 self.nonweighted_evidence = self.recog_results
-                self.updateProbabilities(p_id, self.ie, self.evidence_list[0]) # (8)
+                self.updateProbabilities(id, self.ie, self.evidence_list[0]) # (8)
                 
                 if self.isSaveRecogFiles:
                     if not self.isBNSaved:
                         self.saveBN() # (10)
-                    self.saveRecogniserCSV(self.recogniser_csv_file, p_id) # (9)
-                    self.updateDB(self.db_file, p_id) # (11)
+                    self.saveRecogniserCSV(self.recogniser_csv_file, id) # (9)
+                    self.updateDB(self.db_file, id) # (11)
                     if self.isLogMode:
-                        self.saveAnalysisFile(self.recog_results, p_id, self.ie, isPrevSavedToAnalysis) # (9)
+                        self.saveAnalysisFile(self.recog_results, id, self.ie, isPrevSavedToAnalysis) # (9)
 
-        return self.names[self.i_labels.index(p_id)]
+        return self.names[self.i_labels.index(id)]
 
     #---------------------------------------------FUNCTIONS FOR GETTING/SETTING EVIDENCE FROM THE RECOGNITION RESULTS (MULTI-MODALITIES)---------------------------------------------# 
 
@@ -2301,7 +2262,7 @@ class RecogniserBN:
                         recog_results = recogs_list[count_recogs][1:6]
                 else:
                     p_id = idPerson  
-                self.confirmPersonIdentity(p_id = p_id, recog_results_from_file = recog_results)
+                self.confirmPersonIdentity(name= p_id, recog_results_from_file = recog_results)
 
             num_recog += 1
             count_recogs += 1
@@ -3390,7 +3351,7 @@ class RecogniserBN:
 
                 else:
                     p_id = idPersonNew
-                self.confirmPersonIdentity(p_id = p_id, isRobotLearning = isRobotLearning)
+                self.confirmPersonIdentity(name= p_id, isRobotLearning = isRobotLearning)
             num_recog += 1
             time.sleep(0.1)
             print "*"*10
