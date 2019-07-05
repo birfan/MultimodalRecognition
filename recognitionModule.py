@@ -393,13 +393,12 @@ class RecognitionModule(object):
                             self.s.RecognitionService.setImagePathMult(0)
 
                     self.isRegisteringPerson = False
-                    self.isAddPersonToDB= True
-                    self.isRegistered = False
                     self.RB.setPersonToAdd(self.person)
                     if self.isTabletInteraction:
                         self.confirmRecognition()
                     else:
                         self.confirmRecognitionSilent()
+                    #self.subscribeToFaceDetected()
 
             else:
                 if time.time() - self.start_face_detect_time <= self.faceDetectTimer:
@@ -523,8 +522,8 @@ class RecognitionModule(object):
         else:
             print "all images are discarded"
 
-            self.subscribeToHead()
-            self.detectPeople()
+        self.subscribeToHead()
+        self.detectPeople()
 
         return self.isRegistered, self.identity_est, identity_name
     
