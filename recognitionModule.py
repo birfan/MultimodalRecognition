@@ -40,10 +40,9 @@ from datetime import datetime
 from numpy.ma.core import ids
 import os.path
 
-def generate_name(max):
-    r = range(max)
+def generate_name(min, max):
+    r = range(min, max)
     for i in r:
-        yield "person" + str(i)
         yield "person" + str(i)
 
 @RecognitionMemory.for_all_methods(RecognitionMemory.print_function_name)
@@ -64,8 +63,7 @@ class RecognitionModule(object):
         self.answer_counter = 0
         self.recog_folder = "Experiment/"
         self.face_db = "faceDB"
-        self.name_generator = generate_name(99)
-        
+
         self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
         
         self.isRegistered = True
@@ -277,6 +275,7 @@ class RecognitionModule(object):
         # self.RB.revertToLastSaved(isRobot=True)
 
         self.loadDB(self.RB.db_file)
+        self.name_generator = generate_name(self.num_db, 99) # set name generator, starting count from last ID in DB
         try:
             self.robot_ip = self.s.ALTabletService.robotIp()
             self.s.ALTabletService.hideWebview()
