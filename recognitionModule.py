@@ -483,6 +483,7 @@ class RecognitionModule(object):
     @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
     def recogniseSilent(self):
         self.isUnknown = False
+        self.isUnknown = False
         self.isRegistered = True
         self.hasAnalysedPerson = False
         self.RB.setSessionVar(isRegistered=self.isRegistered, isAddPersonToDB=False)
@@ -569,7 +570,7 @@ class RecognitionModule(object):
         
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognitionSilent(self):
-        self.RB.confirmPersonIdentity(name=self.person[0], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning and picture of the person in the tablet
+        self.RB.confirmPersonIdentity(id=self.person[0], name=self.person[1], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning and picture of the person in the tablet
         self.subscribeToHead()
         self.detectPeople()
                 

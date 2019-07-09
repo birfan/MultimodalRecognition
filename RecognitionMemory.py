@@ -210,7 +210,7 @@ class RecogniserBN:
         self.ie = None # Bayesian network inference
         self.identity_est = "" # estimated identity
         self.recog_results = [] # recognition evidence
-        self.face_recog_results =  [[0.787, [['dude1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['16:08:32', '2', '09', 'July', '2019']]  # recog results from FR
+        self.face_recog_results =  [[0.787, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.8], ['16:08:32', '2', '09', 'July', '2019']]  # recog results from FR
         self.nonweighted_evidence = [] # nonweighted evidence = recog_results
         self.quality_estimate = -1 # quality of estimation
         self.isRegistered = True # is user registered (enrolled)
@@ -1128,7 +1128,7 @@ class RecogniserBN:
         
     #---------------------------------------------FUNCTIONS TO START RECOGNITION AND CONFIRM RECOGNITION (TWO MAIN FUNCTIONS NECESSARY TO TEST THE SYSTEM!!!)---------------------------------------------# 
 
-    def confirmPersonIdentity(self, name=None, is_known=True, recog_results_from_file=None):
+    def confirmPersonIdentity(self, id=0, name="", is_known=True, recog_results_from_file=None):
         """
         After the user confirms or enters the identity, the information is fed back to the system for updating the parameters.
         Calls setPersonIdentity method. If isSpeak, the system will give feedback depending if the user is correctly recognised or not.
@@ -1136,9 +1136,7 @@ class RecogniserBN:
         IMPORTANT: call startRecognition before calling this function, and then ask for name from the person"""
         c_time_t = time.time()
         self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
-        if name == "":
-            name = None
-        name = self.setPersonIdentity(name, is_known, recog_results_from_file)
+        name = self.setPersonIdentity(id, name, is_known, recog_results_from_file)
 
         calc_time = time.time() - self.start_recog_time
         if name is None:
@@ -1328,7 +1326,7 @@ class RecogniserBN:
     #---------------------------------------------FUNCTIONS FOR SETTING THE IDENTITY OF THE PERSON AFTER CONFIRMATION---------------------------------------------# 
 
 
-    def setPersonIdentity(self, name, is_known, recog_results_from_file):
+    def setPersonIdentity(self, id, name, is_known, recog_results_from_file):
         """
         This method saves the information from the recognise function with the actual identity of the person:
         (1) Initial recognition values are saved
@@ -1357,7 +1355,6 @@ class RecogniserBN:
             else:
                  self.saveInitialRecognitionCSV(self.initial_recognition_file, self.recog_results, self.identity_est)
 
-        id = self.identity_est
         if not is_known and self.isAlreadyRegistered(id):
             is_known = True # the person has been wronly tagged unknown
             print "Already Registered in Database while marked unknown"
@@ -2277,6 +2274,8 @@ class RecogniserBN:
 
     def saveRecogniserCSV(self, recogniser_csv_file, identity_real, num_recog=None):
         """Save real identity (I), the recognition values from each identifier (F,G,A,H,T) and registration status (R), and number of the recognition (N)"""
+
+        print "id of the person added to RecogniserDB.csv: " + identity_real
         self.recogniser_csv_file = recogniser_csv_file
         if num_recog == 0 or num_recog is None:
             i = identity_real
