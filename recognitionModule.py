@@ -49,13 +49,13 @@ def generate_name(min, max):
 @qi.multiThreaded()
 class RecognitionModule(object):
    
-    APP_ID = "com.RecognitionModule"
+    APP_ID = "RecognitionModule"
     def __init__(self, qiapp):
         # generic activity boilerplate
         self.qiapp = qiapp
         self.versionV = "1.0"
-        self.events = stk.events.EventHelper(qiapp.session)     
-        self.s = stk.services.ServiceCache(qiapp.session) 
+        self.events = stk.events.EventHelper(qiapp.session)
+        self.s = stk.services.ServiceCache(qiapp.session)
         self.logger = stk.logging.get_logger(qiapp.session, self.APP_ID)
         self.parameters = ["name", "gender", "age", "height"]
         self.person = ["","","",0,0,[]]
@@ -270,7 +270,7 @@ class RecognitionModule(object):
             self.RB.setFaceDetectionDB("faceDB")
            
         # NOTE: Uncomment this to clean the files and face recognition database
-        # self.cleanDB()
+        self.cleanDB()
 
         # NOTE: Uncomment this to revert the files to the previous recognition state.
         # self.RB.revertToLastSaved(isRobot=True)
@@ -495,14 +495,14 @@ class RecognitionModule(object):
                 self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
                 self.isUnknown = True
-                identity_name = self.name_generator.next()  # generate a name
+                identity_name = self.RB.face_recog_results[0][1][0][0] # take the name of the primary person in FR results.. Might be changed
                 self.addPersonUsingRecogValues(identity_name)
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
 
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
                 print identity_name
-                self.getPersonFromDB(identity_name)
+                self.getPersonFromDB(identity_name)  # TODO FIX THIS !!
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
                 self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])  
 
@@ -1056,6 +1056,9 @@ class RecognitionModule(object):
         
     @qi.bind(returnType=qi.Void, paramsType=[qi.String])  
     def getPersonFromDB(self, p_name):
+        print "in getPersonFromDB, p_name is :" + str(p_name)
+        print "database is: " + str(self.db_df)
+
         self.person[0] = str(self.db_df.loc[self.db_df['name'] == p_name, 'id'].iloc[0])
         self.person[1] = p_name
         self.person[2] = self.db_df.loc[self.db_df['name'] == p_name, 'gender'].iloc[0]
@@ -1120,7 +1123,7 @@ class RecognitionModule(object):
 
 
     @qi.bind(returnType=None, paramsType=(qi.List(qi.String), qi.List(qi.Float), qi.Float, qi.Float, qi.String, qi.Float, qi.Float, qi.Float, qi.List(qi.String)))
-    def format_okao_data(self, face_names, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
+    def set_face_recog_results(self, face_names, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
         assert len(face_names) == len(face_confidences)
         face_data = [recognition_accuracy, [ [name, conf] for name, conf in zip(face_names, face_confidences)]]
         gender_data = [gender, gender_confidence]

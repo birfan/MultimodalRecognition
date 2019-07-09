@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 isRecognitionCorrect = True # True if the name is confirmed by the patient
                 
     if isRecognitionCorrect:
-        RB.confirmPersonIdentity(p_id = identity_est) # save the network, analysis data, csv for learning and picture of the person in the tablet
+        RB.confirmPersonIdentity(name= identity_est) # save the network, analysis data, csv for learning and picture of the person in the tablet
     else:
         # TODO: take confirmation from the tablet
         # TODO: getPersonFromDB to set isAddPersonToDB (True, if person does not exist)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         else:
             p_id = '3'
         
-        RB.confirmPersonIdentity(p_id = p_id)
+        RB.confirmPersonIdentity(name= p_id)
     total_time = time.time() - start_time
     print total_time
     

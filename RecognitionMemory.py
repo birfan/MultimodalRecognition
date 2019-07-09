@@ -120,7 +120,7 @@ class RecogniserBN:
         self.image_save_dir = "images/" # images directory
         self.previous_files_dir = "LastSaved/" # contains the recognition from the previous recognition
         self.faceDB = "faceDB"
-        self.face_recog_results = [[0.587, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['11:23:32', '2', '02', 'July', '2019']]
+        # self.recog_results = [[0.587, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['11:23:32', '2', '02', 'July', '2019']]
         """END OF FILES"""
         
         self.node_names = ["I", "F", "G", "A", "H", "T"] # 'I' for identity, 'F' for face, 'G' for gender, 'H' for height, 'T' for time of interaction. Don't change the structure, i.e. if a new parameter is to be added, add it to the end of the list
@@ -210,6 +210,7 @@ class RecogniserBN:
         self.ie = None # Bayesian network inference
         self.identity_est = "" # estimated identity
         self.recog_results = [] # recognition evidence
+        self.face_recog_results =  [[0.787, [['dude1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.08], ['16:08:32', '2', '09', 'July', '2019']]  # recog results from FR
         self.nonweighted_evidence = [] # nonweighted evidence = recog_results
         self.quality_estimate = -1 # quality of estimation
         self.isRegistered = True # is user registered (enrolled)
@@ -1358,12 +1359,12 @@ class RecogniserBN:
 
         id = self.identity_est
         if not is_known and self.isAlreadyRegistered(id):
-            print "Already Registered in Database while marked unkown... Please Investigate"
-            exit()
+            is_known = True # the person has been wronly tagged unknown
+            print "Already Registered in Database while marked unknown"
 
             # NOTE: make sure previous images are saved here! (If the images are not saved during enrollment by the robot, call saveImageAfterRecognition(isRegistered, p_id) to save them here)
             
-        if not is_known:
+        if not is_known and (self.num_recognitions == 0 or self.num_recognitions >= self.num_recog_min):
 
             if self.num_people > 1:
                 if self.update_prob_unknown_method == "evidence":
@@ -3447,7 +3448,7 @@ class RecogniserBN:
         print "self.num_people: " + str(self.num_people)
 
     def set_face_recog_results(self, results):
-        self.set_face_recog_results = results
+        self.face_recog_results = results
                         
 if __name__ == "__main__":
 
