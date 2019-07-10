@@ -72,7 +72,7 @@ def for_all_methods(decorator):
         return cls
     return decorate
 
-
+# TODO remove debug decorator
 @for_all_methods(print_function_name)
 class RecogniserBN:
     
@@ -106,7 +106,7 @@ class RecogniserBN:
         time the value is 1, otherwise 0.
         """
         self.isDBinCSV = True
-        self.imagePath = imagePath
+        # self.imagePath = imagePath
         """FILES AND FOLDERS"""
         self.recog_folder = "" # folder for files, if nothing set, the files will be written in the current directory
         self.recog_file = "RecogniserBN.bif" # file for saving the bayesian network 
@@ -1137,7 +1137,7 @@ class RecogniserBN:
         Comparison file is saved at this stage.
         IMPORTANT: call startRecognition before calling this function, and then ask for name from the person"""
         c_time_t = time.time()
-        self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
+        # self.saveFilesToLastSaved() # save the current files to LastSaved folder (to recover in case of erroneous recognitions)
         name = self.setPersonIdentity(id, name, is_known, recog_results_from_file)
 
         calc_time = time.time() - self.start_recog_time
@@ -2053,28 +2053,7 @@ class RecogniserBN:
         if os.path.isfile(self.faceDB):
             os.remove(self.faceDB)
             
-    def saveFilesToLastSaved(self):
-        """add files one by one to avoid delay (instead of transferring the entire folder)"""
-        if os.path.isfile(self.recog_file):
-            shutil.copy2(self.recog_file, self.previous_files_dir)
-        if self.isSaveRecogFiles:
-            if os.path.isfile(self.recogniser_csv_file):
-                shutil.copy2(self.recogniser_csv_file, self.previous_files_dir)
-            if os.path.isfile(self.initial_recognition_file):
-                shutil.copy2(self.initial_recognition_file, self.previous_files_dir)
-            if os.path.isfile(self.db_file):
-                shutil.copy2(self.db_file, self.previous_files_dir)
-            if os.path.isfile(self.stats_file):
-                shutil.copy2(self.stats_file, self.previous_files_dir)
-            if os.path.isfile(self.conf_matrix_file):
-                shutil.copy2(self.conf_matrix_file, self.previous_files_dir)  
-            analys_save_dir = self.previous_files_dir + self.analysis_dir
-            if not os.path.isdir(analys_save_dir):
-               os.makedirs(analys_save_dir)
-            if os.path.isfile(self.comparison_file):
-                shutil.copy2(self.comparison_file, analys_save_dir)
-            if os.path.isfile(self.faceDB):
-                shutil.copy2(self.faceDB, self.previous_files_dir)
+
 
     def learnFromFile(self, db_list=None, init_list=None, recogs_list=None,
                             db_file = None, init_recog_file = None, final_recog_file = None, 
