@@ -570,7 +570,10 @@ class RecognitionModule(object):
         
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def confirmRecognitionSilent(self):
+        id = self.person[0]
         self.RB.confirmPersonIdentity(id=self.person[0], name=self.person[1], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning and picture of the person in the tablet
+        if self.isAddPersonToDB:
+            self.loadDB(self.RB.db_file)
         self.subscribeToHead()
         self.detectPeople()
                 
