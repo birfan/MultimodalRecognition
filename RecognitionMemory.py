@@ -1128,7 +1128,7 @@ class RecogniserBN:
         
     #---------------------------------------------FUNCTIONS TO START RECOGNITION AND CONFIRM RECOGNITION (TWO MAIN FUNCTIONS NECESSARY TO TEST THE SYSTEM!!!)---------------------------------------------# 
 
-    def confirmPersonIdentity(self, id=0, name="", is_known=True, recog_results_from_file=None):
+    def confirmPersonIdentity(self, id=None, name="", is_known=True, recog_results_from_file=None):
         """
         After the user confirms or enters the identity, the information is fed back to the system for updating the parameters.
         Calls setPersonIdentity method. If isSpeak, the system will give feedback depending if the user is correctly recognised or not.
@@ -1139,6 +1139,7 @@ class RecogniserBN:
         name = self.setPersonIdentity(id, name, is_known, recog_results_from_file)
 
         calc_time = time.time() - self.start_recog_time
+
         if name is None:
             identity_real = self.identity_est
         else:
@@ -1346,6 +1347,9 @@ class RecogniserBN:
         self.discarded_data = []
         isPrevSavedToAnalysis = False
 
+        if self.num_recognitions < self.num_recog_min:
+            id = self.identity_est
+
         if self.isSaveRecogFiles:
             # (1) initial recognition file is saved here, because in the case that the recognition was ignored (either due to wrong input from the user
             # or because of timeout), the data will not be written unless there is a confirmation.
@@ -1442,6 +1446,7 @@ class RecogniserBN:
                     return ""
 
         # (7)
+        print "self.num_people:" + str(self.num_people)
         if self.num_people < 2 and self.isSaveRecogFiles:
             # (9)
             if self.isMultipleRecognitions:
