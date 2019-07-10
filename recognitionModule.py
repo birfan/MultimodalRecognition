@@ -125,7 +125,7 @@ class RecognitionModule(object):
         self.isRegistrationAsked = False
         self.isInputAsked = False
         self.isTabletInteraction = False # True if the interaction is from tablet, False otherwise
-        
+
     @qi.bind(returnType=qi.Void, paramsType=[])
     def blink(self):
         rDuration = 0.05
@@ -494,9 +494,12 @@ class RecognitionModule(object):
             if not self.s.ALBasicAwareness.isEnabled():
                 self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
-                self.isUnknown = True
-                identity_name = self.RB.face_recog_results[0][1][0][0] # take the name of the primary person in FR results.. Might be changed
-                self.addPersonUsingRecogValues(identity_name)
+                identity_name = self.RB.face_recog_name # take the name of the primary person in FR results.. Might be changed
+                if not self.isNewFromName(identity_name):
+                    self.getPersonFromDB(identity_name)
+                else:
+                    self.isUnknown = True
+                    self.addPersonUsingRecogValues(identity_name)
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
 
             else:
@@ -1078,7 +1081,10 @@ class RecognitionModule(object):
         self.RB.resetFiles()
         self.s.ALFaceDetection.clearDatabase()
         self.num_db = 0
-        
+
+    def isNewFromName(self, thisname):
+        print "isNewFromName :" + str(self.db_df)
+        return self.db_df.loc[self.db_df['name'] == str(thisname)].empty
 
     @qi.bind(returnType=qi.Void, paramsType=[])    
     def stop(self):
@@ -1132,7 +1138,7 @@ class RecognitionModule(object):
         gender_data = [gender, gender_confidence]
         age_data = [long(age), age_confidence]
         height_data = [height, height_confidence]
-        self.RB.set_face_recog_results([face_data, gender_data, age_data, height_data, timestamp])
+        self.RB.set_face_recog_results([face_data, gender_data, age_data, height_data, timestamp], face_names[0])
 
 if __name__ == "__main__":
     stk.runner.run_service(RecognitionModule)

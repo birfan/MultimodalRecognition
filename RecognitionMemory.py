@@ -211,6 +211,7 @@ class RecogniserBN:
         self.identity_est = "" # estimated identity
         self.recog_results = [] # recognition evidence
         self.face_recog_results =  [[0.787, [['1', 0.962]]], ['Male', 1.0], [37L, 0.666], [174.4, 0.8], ['16:08:32', '2', '09', 'July', '2019']]  # recog results from FR
+        self.face_recog_name = "didier"
         self.nonweighted_evidence = [] # nonweighted evidence = recog_results
         self.quality_estimate = -1 # quality of estimation
         self.isRegistered = True # is user registered (enrolled)
@@ -1351,9 +1352,6 @@ class RecogniserBN:
         self.discarded_data = []
         isPrevSavedToAnalysis = False
 
-        # if self.num_recognitions < self.num_recog_min:
-        #     id = 1
-
         if self.isSaveRecogFiles:
             # (1) initial recognition file is saved here, because in the case that the recognition was ignored (either due to wrong input from the user
             # or because of timeout), the data will not be written unless there is a confirmation.
@@ -1369,7 +1367,7 @@ class RecogniserBN:
 
             # NOTE: make sure previous images are saved here! (If the images are not saved during enrollment by the robot, call saveImageAfterRecognition(isRegistered, p_id) to save them here)
             
-        if not is_known and (self.num_recognitions == 0 or self.num_recognitions >= self.num_recog_min):
+        if not is_known:
 
             if self.num_people > 1:
                 if self.update_prob_unknown_method == "evidence":
@@ -1508,7 +1506,6 @@ class RecogniserBN:
                     if self.isSaveRecogFiles:
                         if not self.isBNSaved:
                             self.saveBN(num_recog = num_recog) # (10)
-                        
                         self.saveRecogniserCSV(self.recogniser_csv_file, id, num_recog = num_recog) # (9)
                         self.updateDB(self.db_file, id) # (11)
                         if self.isLogMode:
@@ -3458,8 +3455,9 @@ class RecogniserBN:
         print "self.times: " + str(self.times)
         print "self.num_people: " + str(self.num_people)
 
-    def set_face_recog_results(self, results):
+    def set_face_recog_results(self, results, name):
         self.face_recog_results = results
+        self.face_recog_name = name
                         
 if __name__ == "__main__":
 
