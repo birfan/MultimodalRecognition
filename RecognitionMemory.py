@@ -1343,12 +1343,16 @@ class RecogniserBN:
         (10) Update BN
         (11) Update DB
         """
+        print "setting person identity to the DB......"
+        print "occurences: " + str(self.occurrences)
+        print "labels: " + str(self.i_labels)
+
         self.recog_results_from_file = recog_results_from_file
         self.discarded_data = []
         isPrevSavedToAnalysis = False
 
-        if self.num_recognitions < self.num_recog_min:
-            id = self.identity_est
+        # if self.num_recognitions < self.num_recog_min:
+        #     id = 1
 
         if self.isSaveRecogFiles:
             # (1) initial recognition file is saved here, because in the case that the recognition was ignored (either due to wrong input from the user
@@ -1449,9 +1453,11 @@ class RecogniserBN:
         print "self.num_people:" + str(self.num_people)
         if self.num_people < 2 and self.isSaveRecogFiles:
             # (9)
+            print "mark mark 0"
             if self.isMultipleRecognitions:
                 for num_recog in range(0, self.num_mult_recognitions):
                     self.nonweighted_evidence = self.mult_recognitions_list[num_recog]
+                    print " people < 2 call to saveRecogniserCSV"
                     self.saveRecogniserCSV(self.recogniser_csv_file, id, num_recog = num_recog)
             else:
                 self.nonweighted_evidence = self.recog_results
@@ -1514,6 +1520,7 @@ class RecogniserBN:
                 if self.isSaveRecogFiles:
                     if not self.isBNSaved:
                         self.saveBN() # (10)
+                    print "mark mark"
                     self.saveRecogniserCSV(self.recogniser_csv_file, id) # (9)
                     self.updateDB(self.db_file, id) # (11)
                     if self.isLogMode:

@@ -396,7 +396,7 @@ class RecognitionModule(object):
                         self.confirmRecognition()
                     else:
                         self.confirmRecognitionSilent()
-                    #self.subscribeToFaceDetected()
+                    # self.subscribeToFaceDetected()
 
             else:
                 if time.time() - self.start_face_detect_time <= self.faceDetectTimer:
@@ -483,7 +483,6 @@ class RecognitionModule(object):
     @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
     def recogniseSilent(self):
         self.isUnknown = False
-        self.isUnknown = False
         self.isRegistered = True
         self.hasAnalysedPerson = False
         self.RB.setSessionVar(isRegistered=self.isRegistered, isAddPersonToDB=False)
@@ -505,7 +504,7 @@ class RecognitionModule(object):
                 print identity_name
                 self.getPersonFromDB(identity_name)  # TODO FIX THIS !!
                 print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
-                self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])  
+                # self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
 
         else:
             print "all images are discarded"
