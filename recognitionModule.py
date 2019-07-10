@@ -50,73 +50,14 @@ class RecognitionModule(object):
         self.s = stk.services.ServiceCache(qiapp.session)
         self.logger = stk.logging.get_logger(qiapp.session, self.APP_ID)
         self.parameters = ["name", "gender", "age", "height"]
-        self.person = ["","","",0,0,[]]
-        self.counter = 0
-        self.answer_counter = 0
         self.recog_folder = "Experiment/"
-        self.face_db = "faceDB"
+        # self.face_db = "faceDB"
 
-        self.r_ip = "127.0.0.1" #NOTE: This is not to be changed if the code is running locally on the robot. If using remotely, set this to correct value.
-        
         self.isRegistered = True
         self.isUnknown = False
         self.isAddPersonToDB = False
-        self.recog_end_time = time.time()
-        self.recognised_people = []
-        self.recognised_times = []
-        
-        self.timeoutPeriod = 90000 #Timeout period for waiting for input to the tablet in milliseconds
-        
-        self.imageShown = False
-        self.webviewShown = False
-        self.idleShown = False
-
-        # Subscribe to left hand
-        self.touch_hand_event = "HandLeftBackTouched"
-        self.touch_hand = None
-        self.id_hand = -1
-        self.touch_hand = self.s.ALMemory.subscriber(self.touch_hand_event)
-        self.id_hand = self.touch_hand.signal.connect(functools.partial(self.onTouchedHand, self.touch_hand_event))
-        
-        # Left bumper event initialisation (to disregard the recognition)
-        self.touch_bumper_event = "LeftBumperPressed"
-        self.touch_bumper = None
-        self.id_bumper = -1
-        self.bumperPressed = False
-
-        # Activate picture shot
-        self.is_camera_shooting = False
-        
-        # Head touched event initialisation
-        self.touch_head_event = "FrontTactilTouched"
-        self.touch_head = None
-        self.id_head = -1
-        self.headTouched = False
-        
-        # People detected event initialisation
-        self.peopleDetectedEvent = "PeoplePerception/VisiblePeopleList"
-        self.peopleDetected = None
-        self.idPeopleDetected = -1
-        
-        self.person_id = None        
-        self.heightPerson = None
-        self.peopleDetectTimer = 10.0
-                
-        # Face detected event initialisation
-        self.faceDetectedEvent = "FaceDetection/FaceDetected"
-        self.faceDetected = None
-        self.idFaceDetected = -1
-        
-        self.faceDetectTimer = 5.0
-        
         self.hasAnalysedPerson = False
-        self.isRecognitionOn = False
         self.identity_est = ""
-        self.isAskedForReposition = False
-        self.isNameAsked = False
-        self.isRegistrationAsked = False
-        self.isInputAsked = False
-        self.isTabletInteraction = False # True if the interaction is from tablet, False otherwise
 
     @qi.bind(returnType=qi.Void, paramsType=[]) 
     def initSystem(self):
@@ -132,13 +73,6 @@ class RecognitionModule(object):
         self.RB.setFilePaths(self.recog_folder)
         self.RB.setSessionConstant(isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
 
-        if os.path.isfile(self.recog_folder + self.face_db):
-            self.RB.useFaceDetectionDB("faceDB")
-        else:
-            self.cleanDB()
-            self.RB.resetFaceDetectionDB()
-            self.RB.setFaceDetectionDB("faceDB")
-           
         # NOTE: Uncomment this to clean the files and face recognition database
         self.cleanDB()
 
@@ -295,32 +229,6 @@ class RecognitionModule(object):
         self.logger.info("RecognitionModule stopped by user request.")
         self.running = False
         self.RB.saveBN()
-        self.RB.saveFaceDetectionDB()
-#         self.s.ALMotion.rest()
-#         time.sleep(2.0)
-        try:
-            if self.imageShown:
-                self.s.ALTabletService.hideImage()
-                self.imageShown = False
-            self.robot_ip = self.s.ALTabletService.robotIp()
-            self.s.ALTabletService.loadUrl("http://%s/apps/recognition-service/idle.html" % self.robot_ip)
-            self.s.ALTabletService.showWebview()
-            self.webviewShown = True
-        except Exception,e: 
-            print str(e)
-        
-        try:
-            self.faceDetected.signal.disconnect(self.idFaceDetected)
-            self.peopleDetected.signal.disconnect(self.idPeopleDetected)
-            self.touch_head.signal.disconnect(self.id_head)
-            self.s.ALTabletService.onJSEvent.disconnect(self.id_confirm)
-            self.s.ALTabletService.onJSEvent.disconnect(self.id_tablet)
-            self.s.ALTabletService.onJSEvent.disconnect(self.id_confirm_registration)
-            self.touch_bumper.signal.disconnect(self.id_bumper)
-        except:
-            pass
-        self.unsubscribeFacePeople()
-#         self.s._ALAutonomousTablet.setMode("DisplayAppScreen")
         self.qiapp.stop()
         
     @qi.nobind
