@@ -26,8 +26,6 @@ import stk.events
 import stk.services
 import stk.logging
 
-import sys
-import logging 
 import time
 import functools
 
@@ -36,15 +34,9 @@ import ast
 
 import RecognitionMemory
 
-from datetime import datetime
-from numpy.ma.core import ids
 import os.path
 
-def generate_name(min, max):
-    r = range(min, max)
-    for i in r:
-        yield "person" + str(i)
-
+# TODO remove debug decorator
 @RecognitionMemory.for_all_methods(RecognitionMemory.print_function_name)
 @qi.multiThreaded()
 class RecognitionModule(object):
@@ -135,9 +127,9 @@ class RecognitionModule(object):
         self.isDBinCSV = True
         self.isMultipleRecognitions = False
         self.numMultRecognitions = 3
-        
+        self.hasAnalysedPerson = False
+
         self.RB.setFilePaths(self.recog_folder)
-        self.RB.connectToRobot(self.r_ip, port = 9559, useSpanish = False, isImageFromTablet = True, imagePath = image_path)
         self.RB.setSessionConstant(isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
 
         if os.path.isfile(self.recog_folder + self.face_db):
@@ -154,41 +146,11 @@ class RecognitionModule(object):
         # self.RB.revertToLastSaved(isRobot=True)
 
         self.loadDB(self.RB.db_file)
-        self.name_generator = generate_name(self.num_db, 99) # set name generator, starting count from last ID in DB
-        try:
-            self.robot_ip = self.s.ALTabletService.robotIp()
-            self.s.ALTabletService.hideWebview()
-            self.webviewShown = False
-            self.id_tablet = None
-            self.id_confirm = None
-            self.s.ALTabletService.cleanWebview()
-        except Exception,e:
-            print str(e)
-            self.say("There seems to be an error with my tablet. Could you notify the experimenter please?")
-            self.stop()
-    
         self.running = True
         self.timer = 60*30
-    
-        self.web_link = "http://%s/apps/recognition-service/" % self.robot_ip
-     
-        if not self.s.ALBasicAwareness.isEnabled():
-            self.s.ALBasicAwareness.setEnabled(True)
-            
-        self.s.ALAutonomousLife.setRobotOffsetFromFloor(0.1)
-                               
-        self.hasAnalysedPerson = False
-            
-        self.unsubscribeFacePeople()
-        self.subscribeFacePeople()
-        self.startBlinking()
-    
-        self.subscribeToHead()
-            
-        self.detectPeople()
 
     @qi.bind(returnType=qi.Void, paramsType=[]) 
-    def onFaceDetected(self, strVarName, value):
+    def onFaceDetected(self, strVarName, value): # TODO change function name ?
         """Modified version of RecognitionService onFaceDetected,i.e. picture is taken after a face is found, and face results are to be found from that picture"""
         self.recogniseSilent()
 

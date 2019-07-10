@@ -105,7 +105,8 @@ class RecogniserBN:
         In RecogniserBN.csv: Field 'R' is used to identify the registering. If the person is registering for the first
         time the value is 1, otherwise 0.
         """
-        
+        self.isDBinCSV = True
+        self.imagePath = imagePath
         """FILES AND FOLDERS"""
         self.recog_folder = "" # folder for files, if nothing set, the files will be written in the current directory
         self.recog_file = "RecogniserBN.bif" # file for saving the bayesian network 
@@ -1627,13 +1628,13 @@ class RecogniserBN:
             else:
                 gender_result = [gr_comp/sum_gr, gr/sum_gr]
         return gender_result
-    
+
     def getNonweightedProbabilities(self):
         """The evidence (recognition probabilities of F,G,A,H,T) without weights applied"""
-        
+
         # P(e|F)
         face_result = self.setFaceProbabilities(self.recog_results[0], 1.0)
-        
+
         # P(e|G)
         gender_result = self.setGenderProbabilities(self.recog_results[1], 1.0)
 
@@ -1642,11 +1643,11 @@ class RecogniserBN:
 
         # P(e|H)
         height_result = self.getCurve(conf = self.recog_results[3][1], mean = self.recog_results[3][0], stddev = self.stddev_height, min_value = self.height_min, max_value = self.height_max, weight = 1.0, norm_method = self.evidence_norm_methods[3])
-        
-        # P(e|T)   
+
+        # P(e|T)
         time_result = self.getCurve(mean = self.getTimeSlot(self.recog_results[4]), stddev = self.stddev_time, min_value = self.time_min, max_value = self.time_max, weight = 1.0, norm_method = self.evidence_norm_methods[4])
-    
-        return [face_result, gender_result, age_result, height_result, time_result] 
+
+        return [face_result, gender_result, age_result, height_result, time_result]
 
     
     def getPosteriorIUsingCalculatedEvidence(self, bn, evidence):
@@ -2992,24 +2993,7 @@ class RecogniserBN:
     #
     #---------------------------------------------FUNCTIONS FOR THE ROBOT---------------------------------------------#
 
-    def connectToRobot(self, ip, port=9559, useSpanish = False, isImageFromTablet = True, imagePath = ""):
-        """Connect to the robot and set robot parameters of the recognition (NAOqi)"""
-        self.robot_ip = ip
-        self.robot_port = port
-        self.session = qi.Session()
-        try:
-            self.session.connect("tcp://" + ip + ":" + str(port))
-        except RuntimeError:
-            logging.debug("Can't connect to Naoqi at ip \"" + ip + "\" on port " + str(port) +".\n"
-               "Please check your script arguments. Run with -h option for help.")
-            sys.exit(1)
-        self.face_service = self.session.service("ALFaceDetection")
-        self.people_service = self.session.service("ALPeoplePerception")
-        self.memory_service = self.session.service("ALMemory")
-        self.isImageFromTablet = isImageFromTablet
-        
-        self.isDBinCSV = True
-        self.imagePath = imagePath
+
         
 
     def recognisePerson(self, num_recog = None):
