@@ -42,6 +42,8 @@ import os.path
 class RecognitionModule(object):
    
     APP_ID = "RecognitionModule"
+
+    @qi.nobind
     def __init__(self, qiapp):
         # generic activity boilerplate
         self.qiapp = qiapp
@@ -53,10 +55,8 @@ class RecognitionModule(object):
         self.recog_folder = "Experiment/"
         # self.face_db = "faceDB"
 
-        self.isRegistered = True
         self.isUnknown = False
         self.isAddPersonToDB = False
-        self.hasAnalysedPerson = False
         self.identity_est = ""
 
     @qi.bind(returnType=qi.Void, paramsType=[]) 
@@ -68,13 +68,12 @@ class RecognitionModule(object):
         self.isDBinCSV = True
         self.isMultipleRecognitions = False
         self.numMultRecognitions = 3
-        self.hasAnalysedPerson = False
 
         self.RB.setFilePaths(self.recog_folder)
         self.RB.setSessionConstant(isDBinCSV = self.isDBinCSV, isMultipleRecognitions = self.isMultipleRecognitions, defNumMultRecog = self.numMultRecognitions)
 
         # NOTE: Uncomment this to clean the files and face recognition database
-        self.cleanDB()
+        # self.cleanDB()
 
         # NOTE: Uncomment this to revert the files to the previous recognition state.
         # self.RB.revertToLastSaved(isRobot=True)
@@ -83,56 +82,51 @@ class RecognitionModule(object):
         self.running = True
         self.timer = 60*30
 
-    @qi.bind(returnType=qi.Void, paramsType=[]) 
-    def onFaceDetected(self, strVarName, value): # TODO change function name ?
-        """Modified version of RecognitionService onFaceDetected,i.e. picture is taken after a face is found, and face results are to be found from that picture"""
-        self.recogniseSilent()
+    @qi.bind(returnType=qi.Map(qi.String, qi.Float), paramsType=(qi.String, qi.List(qi.String), qi.List(qi.Float), qi.Float, qi.Float, qi.String, qi.Float, qi.Float, qi.Float, qi.List(qi.String)))
+    def get_identity(self, face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
+        self.set_face_recog_results(face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp)
+        _, _, name, quality = self.recogniseSilent()
+        return {name: quality}
 
-        if self.hasAnalysedPerson:
-            self.hasAnalysedPerson = False
+    @qi.bind(returnType=qi.String, paramsType=None)
+    def learn(self, face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp, is_new):
+        # set data for face
+        self.set_face_recog_results(face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence,
+                                    timestamp)
+        self.isUnknown = is_new  # decide if face must be added to DB or just refreshed
+        if self.isUnknown:
+            self.addPersonUsingRecogValues(face_name)
             self.RB.setPersonToAdd(self.person)
+        else:   # just update DB with known person
+            self.getPersonFromDB(face_name)
 
-            self.confirmRecognitionSilent()
+        self.confirmRecognitionSilent()
+        return self.person[0]
 
-    @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
+    @qi.bind(returnType=qi.Bool, paramsType=None)
+    def isInitializing(self):
+        return self.RB.isInitializing()
+
+    @qi.nobind
     def recogniseSilent(self):
-        self.isUnknown = False
-        self.isRegistered = True
-        self.hasAnalysedPerson = False
-        self.RB.setSessionVar(isRegistered=self.isRegistered, isAddPersonToDB=False)
-        
-        self.identity_est = self.RB.recognise_mem() # get the estimated identity from the recognition network
+        self.identity_est, quality_estimate = self.RB.recognise_mem() # get the estimated identity from the recognition network
         print "time for recognition:" + str(time.time()-self.recog_start_time)
         if self.identity_est:
-            self.hasAnalysedPerson = True
-            if not self.s.ALBasicAwareness.isEnabled():
-                self.s.ALBasicAwareness.setEnabled(True)
             if self.identity_est == self.RB.unknown_var:
-                identity_name = self.RB.face_recog_name # take the name of the primary person in FR results.. Might be changed
-                if not self.isNewFromName(identity_name): # TODO change to isPersonInDB(name)
-                    self.getPersonFromDB(identity_name)
+                if self.RB.isInitializing() and self.isPersonInDB(self.RB.face_recog_name ):
+                    identity_name = self.RB.face_recog_name # take the name of the primary person in FR results.. Might be changed
                 else:
-                    self.isUnknown = True
-                    self.addPersonUsingRecogValues(identity_name)
-                print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
-
+                    identity_name = ""  # BN does not agree with FR results
             else:
                 identity_name = self.RB.names[self.RB.i_labels.index(self.identity_est)]
-                print identity_name
-                self.getPersonFromDB(identity_name)  # TODO FIX THIS !!
-                print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
-                # self.s.ALMemory.raiseEvent("RecognitionResultsWritten", [self.isRegistered, self.identity_est, identity_name])
-
         else:
             print "all images are discarded"
             identity_name = ""
 
-        self.subscribeToHead()
-        self.detectPeople()
+        print "isRegistered : " + str(self.isRegistered) + ", id estimated: " + self.identity_est + " id name: " + identity_name
+        return self.isRegistered, self.identity_est, identity_name, quality_estimate
 
-        return self.isRegistered, self.identity_est, identity_name
-    
-    @qi.bind(returnType=qi.Void, paramsType=[]) 
+    @qi.nobind
     def addPersonManually(self, p_name, p_gender, p_age, p_height):
         self.person[0] = str(self.num_db + 1)
         self.person[1] = p_name
@@ -144,23 +138,20 @@ class RecognitionModule(object):
         self.isRegistered = False
         print "Adding person to the DB:", self.person
         self.RB.setPersonToAdd(self.person)
-        
-    @qi.bind(returnType=qi.Void, paramsType=[]) 
+
+    @qi.nobind
     def addPersonUsingRecogValues(self, p_name):
         """Add a person using the estimated recognition results as the "true values" of the recognition.
         NOTE: recognise() should be called before calling this function!!"""
         self.addPersonManually(p_name, self.RB.recog_results[1][0], self.RB.recog_results[2][0], self.RB.recog_results[3][0])
-        
-    @qi.bind(returnType=qi.Void, paramsType=[]) 
+
+    @qi.nobind
     def confirmRecognitionSilent(self):
-        id = self.person[0]
-        self.RB.confirmPersonIdentity(id=self.person[0], name=self.person[1], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning and picture of the person in the tablet
+        self.RB.confirmPersonIdentity(id=self.person[0], name=self.person[1], is_known=(not self.isUnknown)) # save the network, analysis data, csv for learning
         if self.isAddPersonToDB:
             self.loadDB(self.RB.db_file)
-        self.subscribeToHead()
-        self.detectPeople()
 
-    @qi.bind(returnType=qi.AnyArguments, paramsType=[]) 
+    @qi.nobind
     def getTime(self):
         numeric_day_name = int(time.strftime("%u")) # Numeric representation of the day of the week (1 (for Monday) through 7 (for Sunday))
         current_time = time.strftime("%T") #"%H:%M:%S" (21:34:17)
@@ -170,8 +161,8 @@ class RecognitionModule(object):
         date_today = [current_time, numeric_day_name, day, month, year]
 
         return date_today
-    
-    @qi.bind(returnType=qi.Void, paramsType=[qi.String, qi.String])    
+
+    @qi.nobind
     def updateDB(self, csv_file, p_name):
         """This function updates the database csv file with the updated time of the person seen"""
         time_p = self.db_df.loc[self.db_df['name'] == p_name, 'times'].iloc[0]
@@ -179,24 +170,21 @@ class RecognitionModule(object):
         self.db_df.loc[self.db_df['name'] == p_name, 'times'].iloc[0] = time_p
         with open(csv_file, 'w') as fd:
             self.db_df.to_csv(fd, index=False, header=True)
-        
-    @qi.bind(returnType=qi.Bool, paramsType=[qi.String])    
+
+    @qi.nobind
     def isPersonInDB(self, p_name):
         p_name = self.changeNameLetters(p_name)
-        if self.num_db > 0:
-            if p_name in self.db_df.name.values:
-                return True
-        return False
-    
-    @qi.bind(returnType=qi.Void, paramsType=[qi.String])  
+        return p_name in self.db_df.name.values
+
+    @qi.nobind
     def loadDB(self, csv_file):
         if os.path.isfile(csv_file):
             self.num_db = sum(1 for line in open(csv_file)) - 1
             self.db_df = pandas.read_csv(csv_file, dtype={"I": object}, converters={"times": ast.literal_eval})
         else:
             self.cleanDB()
-        
-    @qi.bind(returnType=qi.Void, paramsType=[qi.String])  
+
+    @qi.nobind
     def getPersonFromDB(self, p_name):
         print "in getPersonFromDB, p_name is :" + str(p_name)
         print "database is: " + str(self.db_df)
@@ -212,15 +200,10 @@ class RecognitionModule(object):
         self.person[5] = self.db_df.loc[self.db_df['name'] == p_name, 'times'].iloc[0]
         print "The person is :",self.person
     
-    @qi.bind(returnType=qi.Void, paramsType=[])
+    @qi.bind(returnType=qi.Void, paramsType=None)
     def cleanDB(self):
         self.RB.resetFiles()
-        self.s.ALFaceDetection.clearDatabase()
         self.num_db = 0
-
-    def isNewFromName(self, thisname): # TODO delete when replaced by isPersonInDB()
-        print "isNewFromName :" + str(self.db_df)
-        return self.db_df.loc[self.db_df['name'] == str(thisname)].empty
 
     @qi.bind(returnType=qi.Void, paramsType=[])    
     def stop(self):
@@ -237,17 +220,14 @@ class RecognitionModule(object):
         self.stop()
         self.logger.info("RecognitionModule finished.")
 
-    def run(self):
-        self.onFaceDetected()
-
-    @qi.bind(returnType=None, paramsType=(qi.List(qi.String), qi.List(qi.Float), qi.Float, qi.Float, qi.String, qi.Float, qi.Float, qi.Float, qi.List(qi.String)))
-    def set_face_recog_results(self, face_names, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
-        assert len(face_names) == len(face_confidences)
-        face_data = [recognition_accuracy, [ [name, conf] for name, conf in zip(face_names, face_confidences)]]
+    @qi.nobind
+    def set_face_recog_results(self, face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
+        assert len(face_ids) == len(face_confidences)
+        face_data = [recognition_accuracy, [[id, conf] for id, conf in zip(face_ids, face_confidences)]]
         gender_data = [gender, gender_confidence]
         age_data = [long(age), age_confidence]
         height_data = [height, height_confidence]
-        self.RB.set_face_recog_results([face_data, gender_data, age_data, height_data, timestamp], face_names[0])
+        self.RB.set_face_recog_results([face_data, gender_data, age_data, height_data, timestamp], face_name)
 
 
 if __name__ == "__main__":

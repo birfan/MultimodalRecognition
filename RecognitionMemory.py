@@ -199,12 +199,7 @@ class RecogniserBN:
         
         self.isDebugMode = False # print values and errors if True
         self.isLogMode = False # save Analysis.json if True
-            
-        """ROBOT PARAMETERS"""
-        self.useSpanish = False # speak Spanish (for Colombia experiments)
-        self.isSpeak = True # if False, the robot will not speak
-        self.isImageFromTablet = False  # is image received from the tablet or taken by the robot
-        """END OF ROBOT PARAMETERS"""
+
         
         """INITIALISATIONS"""
         self.r_bn = None # Bayesian network
@@ -215,7 +210,6 @@ class RecogniserBN:
         self.face_recog_name = "didier"
         self.nonweighted_evidence = [] # nonweighted evidence = recog_results
         self.quality_estimate = -1 # quality of estimation
-        self.isRegistered = True # is user registered (enrolled)
         self.isBNLoaded = False # is Bayesian network loaded (to avoid reloading the BN during execution of the code for time purposes)
         self.isUnknownCondition = False # is the user estimated as unknown because Q < Q_threshold
         self.imageToCopy = None # image to copy
@@ -1100,7 +1094,7 @@ class RecogniserBN:
     
     #---------------------------------------------FUNCTIONS TO SET SESSION CONSTANT/VARIABLES ---------------------------------------------# 
 
-    def setSessionConstant(self, isDBinCSV = False, isMultipleRecognitions = False, defNumMultRecog = 3, isSaveRecogFiles = True, isSpeak = True):
+    def setSessionConstant(self, isDBinCSV = False, isMultipleRecognitions = False, defNumMultRecog = 3, isSaveRecogFiles = True):
         """
         Set session constants: isMemoryRobot, isDBinCSV, isMultipleRecognitions, defNumMultRecog, isSaveRecogFiles, isSpeak from the file 
         isBNLoaded = False, isBNSaved = False, and sentences for recognition are loaded
@@ -1108,21 +1102,11 @@ class RecogniserBN:
         self.isDBinCSV = isDBinCSV
         self.isMultipleRecognitions = isMultipleRecognitions
         self.def_num_mult_recognitions = defNumMultRecog
-        self.isSpeak = isSpeak
         self.isSaveRecogFiles = isSaveRecogFiles
         # self.loadSentencesForRecognition()
         self.isBNLoaded = False
         self.isBNSaved = False
-    
-    def setSessionVar(self, isRegistered = True, isAddPersonToDB = False, personToAdd = []):
-        """Set session variables: isRegistered, isAddPersonToDB, personToAdd."""
-        self.start_recog_time = time.time()
-        self.isRegistered = isRegistered
-        self.isAddPersonToDB = isAddPersonToDB
-        self.personToAdd = personToAdd
-        self.image_id = None
-        self.num_mult_recognitions = self.def_num_mult_recognitions
-                
+
     def setPersonToAdd(self, personToAdd):
         """Set person to add (used if the person is enrolled through the robot)"""
         self.isAddPersonToDB = True
@@ -1259,7 +1243,7 @@ class RecogniserBN:
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
                 print "in RB.recognise(), identity_est = " + str(self.identity_est)
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
-                if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
+                if self.isUseFaceRecogEstForMinRecog and self.isInitializing():
                     self.identity_est = self.face_est
                 if self.isDebugMode:
                     print "self.identity_est:" + str(self.identity_est)
@@ -1286,7 +1270,7 @@ class RecogniserBN:
                 print "identity_prob_list = " + str(self.identity_prob_list)
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity(self.identity_prob_list) # (4)
                 self.face_est, self.face_prob = self.getFaceRecogEstimate() # (5)
-                if self.isUseFaceRecogEstForMinRecog and self.num_recognitions < self.num_recog_min:
+                if self.isUseFaceRecogEstForMinRecog and self.isInitializing():
                     self.identity_est = self.face_est
             else:
                 self.identity_est, self.quality_estimate = self.getEstimatedIdentity() # (4)
@@ -1296,7 +1280,7 @@ class RecogniserBN:
             print "time for recognise: " + str(time.time() - r_time_t)
         self.identity_est_prob = self.identity_prob_list
         print "in RB.recognise(), identity_est = " + str(self.identity_est)
-        return self.identity_est
+        return self.identity_est, self.quality_estimate
 
     def threadedRecognisePerson(self, num_recog):
         """Threaded recognisePerson with estimation of the identity (during recognise for multipleRecognitions)"""
@@ -1676,7 +1660,7 @@ class RecogniserBN:
         
         identity_est = ""
         self.isUnknownCondition = False
-        if self.num_people > 1 and self.num_recognitions >= self.num_recog_min:
+        if self.num_people > 1 and not self.isInitializing():
             identity_est = self.i_labels[np.argmax(i_post)]
             quality_estimate = self.getQualityEstimation(i_post)     
             if quality_estimate < self.quality_threshold or quality_estimate == 0:
@@ -1751,7 +1735,7 @@ class RecogniserBN:
         unknown_index = self.i_labels.index(self.unknown_var)
         if not total_face_prob:
             return self.unknown_var, [self.face_recog_threshold]
-        elif self.num_recognitions < self.num_recog_min and not self.isUseFaceRecogEstForMinRecog:
+        elif self.isInitializing() and not self.isUseFaceRecogEstForMinRecog:
             total_face_prob.insert(unknown_index, self.face_recog_threshold)
             return self.unknown_var, total_face_prob
         max_est_value = max(total_face_prob)
@@ -2943,6 +2927,9 @@ class RecogniserBN:
     def set_face_recog_results(self, results, name):
         self.face_recog_results = results
         self.face_recog_name = name
+
+    def isInitializing(self):
+        return self.num_recognitions < self.num_recog_min
                         
 if __name__ == "__main__":
 
