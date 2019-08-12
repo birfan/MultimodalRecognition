@@ -84,6 +84,8 @@ class RecognitionModule(object):
 
     @qi.bind(returnType=qi.Map(qi.String, qi.Float), paramsType=(qi.String, qi.List(qi.String), qi.List(qi.Float), qi.Float, qi.Float, qi.String, qi.Float, qi.Float, qi.Float, qi.List(qi.String)))
     def get_identity(self, face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp):
+        """Returns the most probable face among all the given face.
+        """
         self.set_face_recog_results(face_name, face_ids, face_confidences, recognition_accuracy, age, age_confidence, gender, gender_confidence, height, height_confidence, timestamp)
         _, _, name, quality = self.recogniseSilent()
         return {name: quality}
