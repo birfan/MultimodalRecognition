@@ -3,7 +3,7 @@
 #! /usr/bin/env python
 
 #========================================================================================================#
-#  Copyright 2017 Bahar Irfan                                                                            #
+#  Copyright (c) 2017-present, Bahar Irfan                                                               #
 #                                                                                                        #
 #  This script allows to run the RecognitionMemory using Multi-Modal Incremental Bayesian Network        #
 #  (MMIBN) for person recognition on Pepper robot (Naoqi 2.4 and 2.5).                                   #

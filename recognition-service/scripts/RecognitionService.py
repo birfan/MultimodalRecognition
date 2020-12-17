@@ -3,7 +3,7 @@
 #! /usr/bin/env python
 
 #========================================================================================================#
-#  Copyright 2017 Bahar Irfan                                                                            #
+#  Copyright (c) 2017-present, Bahar Irfan                                                               #
 #                                                                                                        #
 #  RecogniserService is a script for obtaining multi-modal information from the user: face similarity    #
 #  scores, gender, age, height estimations of the user through NAOqi modules (ALFaceDetection and        #
@@ -307,12 +307,17 @@ class RecognitionService(object):
             self.s.ALMemory.raiseEvent("RecognitionResultsUpdated", recog_results)
             return recog_results # []
         else:
-            if results[0][5]:
+            #if results[0][5]:
+            if results[0][5] and results[0][0][6] > 0.4:
+            # accept results with face recognition overall confidence higher than 0.4
                 faceWithConfidence = results[0][5] # faces with confidences
                 for counter in range(0, len(faceWithConfidence)):
                     faceWithConfidence[counter][1] = float("{0:.3f}".format(faceWithConfidence[counter][1]))
             else:
-                faceWithConfidence = []
+                # faceWithConfidence = []
+                # return empty results to take another picture
+                self.s.ALMemory.raiseEvent("RecognitionResultsUpdated", recog_results)
+                return recog_results # []
             faceAccuracy = float("{0:.3f}".format(results[0][0][6])) # accuracy of the face detection algorithm
             faceWithConfidence = [faceAccuracy, faceWithConfidence]
         
