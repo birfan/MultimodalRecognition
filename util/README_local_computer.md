@@ -25,12 +25,12 @@
 For NAOqi 2.4:
 
 ```
-    $ export PYTHONPATH=${PYTHONPATH}:MultimodalRecognition/util/naoqi_sdks/pynaoqi-python2.7-2.4.3.28-linux64/
+    $ export PYTHONPATH=${PYTHONPATH}:/path-to-MultimodalRecognition/util/naoqi_sdks/pynaoqi-python2.7-2.4.3.28-linux64/
 ```
 
 For NAOqi 2.5:
 ```
-    $ export PYTHONPATH=${PYTHONPATH}:MultimodalRecognition/util/naoqi_sdks/pynaoqi-python2.7-2.5.5.5-linux64/lib/python2.7/site-packages
+    $ export PYTHONPATH=${PYTHONPATH}:/path-to-MultimodalRecognition/util/naoqi_sdks/pynaoqi-python2.7-2.5.5.5-linux64/lib/python2.7/site-packages
 ```
 
 * Source the bashrc file.
