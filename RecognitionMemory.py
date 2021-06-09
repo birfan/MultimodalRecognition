@@ -155,14 +155,7 @@ class RecogniserBN:
         # self.weights = [1.0, 0.19, 0.589, 0.15, 0.34] # for patterned time of interactions with non-adaptive likelihoods (MMIBN on Multi-modal Long-Term User Recognition Dataset with Nall_gaussianT -Gaussian time))
         # self.weights = [1.0, 0.634, 0.534, 0.169, 0.346] # for patterned time of interactions with online learning (for MMIBN-OL, set self.isOnlineLearning to True !)
 
-        self.isOnlineLearning = False # if True, likelihoods are learned from data (MMIBN-OL), else non-adaptive likelihoods (MMIBN)
-
-        if self.isOnlineLearning:
-            self.update_prob_method = "evidence" # method for online learning: none, evidence (MMIBN-OL), sum, avg
-            self.update_prob_unknown_method = "evidence" # method for online learning for unknown state: none, evidence (MMIBN-OL), sum, avg
-        else:
-            self.update_prob_method = "none" # method for online learning: none, evidence (MMIBN-OL), sum, avg
-            self.update_prob_unknown_method = "none" # method for online learning for unknown state: none, evidence (MMIBN-OL), sum, avg
+        self.setOnlineLearning(on = False)
 
         self.isUpdateFaceLikelihoodsEqually = False # if is equal likelihoods when update method is none
         self.update_partial_params = None # online learning for only specified parameters! self.update_partial_params = None if all parameters are to be learned, e.g. ["A", "T"]
@@ -245,7 +238,24 @@ class RecogniserBN:
             self.weights[4] = weight
 #         elif param == "L":
 #             self.weights[5] = weight
-        
+
+    def setOptimParams(self, isPatterned = False, isOnlineLearning=False):
+        """Update the optimised weights and quality of the estimation. If the interaction will be on patterned times (e.g., 10 return visits to a rehabilitation session) use isPatterned=True, else it is False (e.g., for companion robot - default). If using online learning, use isOnlineLearning=True, else False (default)."""
+        if isPatterned:
+            if isOnlineLearning:
+                self.weights = [1.0, 0.634, 0.534, 0.169, 0.346]
+                self.quality_threshold = 0.028
+            else:
+                self.weights = [1.0, 0.19, 0.589, 0.15, 0.34]
+                self.quality_threshold = 0.013
+        else:
+            if isOnlineLearning:
+                self.weights = [1.0, 0.35, 0.72, 0.03, 0.63]
+                self.quality_threshold = 0.01
+            else:
+                self.weights = [1.0, 0.044, 0.538, 0.136, 0.906]
+                self.quality_threshold = 0.037
+
     def setFaceRecognitionThreshold(self, face_threshold):
         """Set face recognition threshold (0.4 default). Threshold of the face recognition (optimised for NAOqi ALFaceDetection recognition)"""
         self.face_recog_threshold = face_threshold
@@ -316,13 +326,32 @@ class RecogniserBN:
         Otherwise (isUpdateFaceLikelihoodsEqually = False), then ONLY unknown likelihood will be updated as such.
         If update_prob_method is not none, then likelihoods will be updated according to the update method."""
         self.isUpdateFaceLikelihoodsEqually = isUpdateFaceLikelihoodsEqually
+
+    def setOnlineLearning(self, on = True):
+        """Set online learning for likelihoods if True, else non-adaptive model."""        
+        if on:
+            self.isOnlineLearning = True # if True, likelihoods are learned from data (MMIBN-OL), else non-adaptive likelihoods (MMIBN)
+            self.update_prob_method = "evidence" # method for online learning: none, evidence (MMIBN-OL), sum, avg
+            self.update_prob_unknown_method = "evidence" # method for online learning for unknown state: none, evidence (MMIBN-OL), sum, avg
+        else:
+            self.isOnlineLearning = False
+            self.update_prob_method = "none"
+            self.update_prob_unknown_method = "none"
+
+    def setNumRecogMin(self, minrecog=5):
+        """Set minimum number of recognitions under which (n<minrecog) the user will be identified as unknown, regardless of the output of the network."""  
+        self.num_recog_min = minrecog
+
+    def setFaceRecogEstimateForMinRecog(self, isUseFaceRecog=True):
+        """Set whether the face recognition estimate is used to identify the user under minimum number of recognitions (otherwise they are identified as unknown). Default is False, using this function will set it to True."""  
+        self.isUseFaceRecogEstForMinRecog = isUseFaceRecog
         
     def setDefinedNumMultRecognitions(self, num_mult_recognitions):
-        """Set defined number of recognitions for multiple image recognition (3 default)"""
+        """Set defined number of recognitions for multiple image recognition (3 default)."""
         self.def_num_mult_recognitions = num_mult_recognitions
 
     def setNumberImagesPerRecognition(self, isMultRecognitions, num_mult_recognitions = None):
-        """Set number of images per recognition. If isMultRecognitions False (default), single image recognition will be made, if True, num_mult_recognitions can be specified (3 default)"""
+        """Set number of images per recognition. If isMultRecognitions False (default), single image recognition will be made, if True, num_mult_recognitions can be specified (3 default)."""
         self.isMultipleRecognitions = isMultRecognitions
         if isMultRecognitions:
             self.def_num_mult_recognitions = num_mult_recognitions
@@ -333,9 +362,13 @@ class RecogniserBN:
         Quality = highest_prob - second_highest_prob * qualityCoefficient. Default num_people is used for the coefficient"""
         self.qualityCoefficient = qualityCoefficient
         
-    def setSaveRecogFiles(self, isSaveRecogFiles):
+    def setSaveRecogFiles(self, isSaveRecogFiles=True):
         """Set isSaveRecogFiles (default: True). If True, the files are saved, make False only for optimisation."""
         self.isSaveRecogFiles = isSaveRecogFiles
+
+    def setSaveLastFiles(self, isSaveLastFiles=True):
+        """Set isSaveLastFiles (default: True). If True, the files from the last recognition are saved, make False only for optimisation."""
+        self.isSaveLastFiles = isSaveLastFiles
         
     def setDebugMode(self, mode = True):
         """Set debug mode. If True, print values and errors"""
@@ -457,8 +490,9 @@ class RecogniserBN:
             self.num_people = len(self.i_labels)
         elif self.isDBinCSV:
             self.loadDBFromCSV(db_file)
-        else:
-            bla = ""
+        #else:
+            # self.loadDummyData()
+
 #             db_handler = db.DbHandler()
 #             self.loadDBFromMongo(db_handler)
 #         self.printDB()
@@ -523,7 +557,7 @@ class RecogniserBN:
             pass
 
     def loadDummyData(self):
-        """Load dummy data to test the system"""
+        """Load dummy data to test the system"""     
         self.i_labels = ["1","2","3"]
         self.names = ["Jane","James","John"]
         self.genders = ["Female","Male","Male"]
@@ -531,7 +565,8 @@ class RecogniserBN:
         self.heights = [168, 168, 168]
         self.times =[[["11:00:00",1]], [["11:00:00",1]], [["11:00:00",1], ["12:00:00",3]]]
         self.occurrences = [[1,1,1], [2,3,6],[1,2,2]]    
-        self.num_people = 3
+        self.addUnknown()
+        self.num_people = len(self.i_labels)
         
     #---------------------------------------------INITIALISE NODES/LIKELIHOODS ---------------------------------------------# 
 
@@ -2560,17 +2595,19 @@ class RecogniserBN:
         conf_matrices = [[[0 for _ in range(0, self.num_people+1)] for i in range(0, self.num_people)] for j in range(0,2)]
         for num_recog in range(0, len(comp_list)):
             i_real = comp_list[num_recog][0]
+            real_ind = self.i_labels.index(str(i_real))
             for num_estimator in range(0, 2): # I and F
                 identity_est = comp_list[num_recog][num_estimator+1]
+                est_ind = self.i_labels.index(str(identity_est))
                 if comp_list[num_recog][-1] == 1: # unknown
-                    conf_matrices[num_estimator][0][identity_est] += 1
+                    conf_matrices[num_estimator][0][est_ind] += 1
                     conf_matrices[num_estimator][0][-1] += 1
                     if identity_est != int(self.unknown_var):
-                        conf_matrices[num_estimator][i_real][identity_est] += 1
-                        conf_matrices[num_estimator][i_real][-1] += 1          
+                        conf_matrices[num_estimator][real_ind][est_ind] += 1
+                        conf_matrices[num_estimator][real_ind][-1] += 1          
                 else:
-                    conf_matrices[num_estimator][i_real][identity_est] += 1
-                    conf_matrices[num_estimator][i_real][-1] += 1
+                    conf_matrices[num_estimator][real_ind][est_ind] += 1
+                    conf_matrices[num_estimator][real_ind][-1] += 1
         percent_conf_matrices = [[[0 for _ in range(0, self.num_people+1)] for i in range(0, self.num_people)] for j in range(0,2)]
         for num_estimator in range(0, 2): # I and F
             conf_matrix = conf_matrices[num_estimator][:]
@@ -2591,7 +2628,8 @@ class RecogniserBN:
             conf_matrix = conf_matrices[num_estimator][:]
             with open(conf_matrix_fi, 'wb') as outcsv:
                 writer = csv.writer(outcsv)
-                row = [str(i) for i in range(0, self.num_people)]
+                #row = [str(i) for i in range(0, self.num_people)]
+                row = [str(i) for i in self.i_labels]
                 row.insert(0,"Real/Estimate")
                 row.append("Num_recog")
                 writer.writerow(row)
@@ -2600,7 +2638,8 @@ class RecogniserBN:
                 writer = csv.writer(outcsv)
                 row_counter = 0
                 for row in conf_matrix:
-                    row.insert(0,row_counter)
+                    # row.insert(0,row_counter)
+                    row.insert(0,self.i_labels[row_counter])
                     writer.writerow(row)
                     row_counter += 1
 
@@ -2610,7 +2649,8 @@ class RecogniserBN:
             percent_conf_matrix = percent_conf_matrices[num_estimator][:]
             with open(conf_matrix_fi, 'wb') as outcsv:
                 writer = csv.writer(outcsv)
-                row = [str(i) for i in range(0, self.num_people)]
+                #row = [str(i) for i in range(0, self.num_people)]
+                row = [str(i) for i in self.i_labels]
                 row.insert(0,"Real/Estimate")
                 row.append("Num_recog")
                 writer.writerow(row)
@@ -2619,7 +2659,8 @@ class RecogniserBN:
                 writer = csv.writer(outcsv)
                 row_counter = 0
                 for row in percent_conf_matrix:
-                    row.insert(0,row_counter)
+                    # row.insert(0,row_counter)
+                    row.insert(0,self.i_labels[row_counter])
                     writer.writerow(row)
                     row_counter += 1
                 
@@ -2715,15 +2756,21 @@ class RecogniserBN:
                     
         return stats, stats_percent, stats_graph
         
-    def getHeightStddev(self, recogniser_csv_file):
+    def getHeightStddev(self, recogniser_csv_file=None):
         """
         Get standard deviation of height from recognition file. 
         Returns the list of standard deviation from true height (ground truth), standard deviation within estimates for each user
         """
+        if recogniser_csv_file is None:
+            recogniser_csv_file = self.recogniser_csv_file
+
         df = pandas.read_csv(recogniser_csv_file, dtype={"I": object}, usecols =["I", "H"], converters={"H": ast.literal_eval})
         group_v = df.loc[:,['I','H']].groupby('I')
         std_dev = [0.0 for i in range(1, len(self.i_labels))]
         std_dev_est = [0.0 for i in range(1, len(self.i_labels))]
+
+        self.loadDB(self.db_file)
+
         for counter in range(1,len(self.i_labels)):
             true_height = float(self.heights[counter])
             gr = group_v.get_group(self.i_labels[counter])
@@ -2748,14 +2795,20 @@ class RecogniserBN:
             
         return std_dev, std_dev_est
     
-    def getAgeStddev(self, recogniser_csv_file, initial_recognition_file):
+    def getAgeStddev(self, isReturnWithoutAveraging=False, recogniser_csv_file=None, initial_recognition_file=None):
         """
         Get standard deviation of age from recognition file. 
         Returns the list of standard deviation from true age (ground truth), standard deviation within estimates for each user
         """
+        if recogniser_csv_file is None:
+            recogniser_csv_file = self.recogniser_csv_file
+        if initial_recognition_file is None:
+            initial_recognition_file = self.initial_recognition_file
+
         df_final = pandas.read_csv(recogniser_csv_file, dtype={"I": object}, usecols =["I", "A", "R", "N"], converters={"A": ast.literal_eval})
         df_init = pandas.read_csv(initial_recognition_file, usecols =["I_est", "A", "N"], converters={"A": ast.literal_eval})
-        
+        self.loadDB(self.db_file)        
+
         recogs_list = df_final.values.tolist()
         count_recogs = 0
         stddev_true_mean = [0.0 for i in range(1, len(self.i_labels))]
@@ -2763,44 +2816,15 @@ class RecogniserBN:
         avg_val = [0.0 for i in range(1, len(self.i_labels))]
         estimates_mean = [[] for i in range(1, len(self.i_labels))]
         estimates_stddev = [[] for i in range(1, len(self.i_labels))]
+
         while count_recogs < len(recogs_list):
             isRegistered =  not recogs_list[count_recogs][2]# False if register button is pressed (i.e. if the person starts the session for the first time)
             numRecognition = recogs_list[count_recogs][3]
             p_id = recogs_list[count_recogs][0]
             p_id_index = self.i_labels.index(p_id)
 
-            if isRegistered:
-                if self.isMultipleRecognitions:
-                    num_mult_recognitions = df_final.loc[df_final['N'] == numRecognition].A.count()
 
-                    for num_recog in range(0, num_mult_recognitions):             
-                        est_mean = recogs_list[count_recogs][1][0]
-                        est_conf = recogs_list[count_recogs][1][1]
-                        if est_conf > 0: 
-                            if est_conf == 1.0:
-                                est_stddev = 0.0
-                            else:
-                                est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
-                            estimates_mean[p_id_index-1].append(est_mean)
-                            estimates_stddev[p_id_index-1].append(est_stddev)
-                            stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
-                            avg_val[p_id_index-1] += est_mean
-                        if num_recog < num_mult_recognitions - 1:
-                            count_recogs += 1
-                else:
-                    est_mean = recogs_list[count_recogs][1][0]
-                    est_conf = recogs_list[count_recogs][1][1]
-                    if est_conf > 0:  
-                        if est_conf == 1.0:
-                            est_stddev = 0.0
-                        else:
-                            est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
-                        estimates_mean[p_id_index-1].append(est_mean)
-                        estimates_stddev[p_id_index-1].append(est_stddev)
-                        stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
-                        avg_val[p_id_index-1] += est_mean
-                    
-            else:
+            if not isRegistered:
                 if self.isMultipleRecognitions:
                     
                     init_recog_est = df_init.loc[df_init['N'] == numRecognition].values.tolist()
@@ -2815,28 +2839,12 @@ class RecogniserBN:
                                 est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
                             estimates_mean[p_id_index-1].append(est_mean)
                             estimates_stddev[p_id_index-1].append(est_stddev)
-                            stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                            # stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                            stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2)
                             avg_val[p_id_index-1] += est_mean
                         
-                    num_mult_recognitions = df_final.loc[df_final['N'] == numRecognition].A.count()
-                    for num_recog in range(0, num_mult_recognitions):
-                        est_mean = recogs_list[count_recogs][1][0]
-                        est_conf = recogs_list[count_recogs][1][1]
-                        if est_conf > 0:  
-                            if est_conf == 1.0:
-                                est_stddev = 0.0
-                            else:
-                                est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
-                            estimates_mean[p_id_index-1].append(est_mean)
-                            estimates_stddev[p_id_index-1].append(est_stddev)
-                            stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
-                            avg_val[p_id_index-1] += est_mean
-                        if num_recog < num_mult_recognitions - 1:
-                            count_recogs += 1
-
                 else:
-
-                    init_recog_est = df_init.loc[df_init['N'] == numRecognition].values.tolist()
+                    init_recog_est = df_init.loc[df_init['N'] == numRecognition].values.tolist()[0]
                     est_mean = init_recog_est[1][0]
                     est_conf = init_recog_est[1][1]
                     if est_conf > 0:  
@@ -2846,33 +2854,161 @@ class RecogniserBN:
                             est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
                         estimates_mean[p_id_index-1].append(est_mean)
                         estimates_stddev[p_id_index-1].append(est_stddev)
-                        stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                        # stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                        stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2)
                         avg_val[p_id_index-1] += est_mean
-                    
+             
+            if self.isMultipleRecognitions:
+                num_mult_recognitions = df_final.loc[df_final['N'] == numRecognition].A.count()
+
+                for num_recog in range(0, num_mult_recognitions):             
                     est_mean = recogs_list[count_recogs][1][0]
                     est_conf = recogs_list[count_recogs][1][1]
-                    if est_conf > 0:  
+                    if est_conf > 0: 
                         if est_conf == 1.0:
                             est_stddev = 0.0
                         else:
                             est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
+                        estimates_mean[p_id_index-1].append(est_mean)
                         estimates_stddev[p_id_index-1].append(est_stddev)
-                        stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                        # stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                        stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2)
                         avg_val[p_id_index-1] += est_mean
+                    if num_recog < num_mult_recognitions - 1:
+                        count_recogs += 1
+            else:
+                est_mean = recogs_list[count_recogs][1][0]
+                est_conf = recogs_list[count_recogs][1][1]
+                if est_conf > 0:  
+                    if est_conf == 1.0:
+                        est_stddev = 0.0
+                    else:
+                        est_stddev = 0.5/self.normppf(est_conf + (1-est_conf)/2.0)
+                    estimates_mean[p_id_index-1].append(est_mean)
+                    estimates_stddev[p_id_index-1].append(est_stddev)
+                    # stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2) + math.pow(est_stddev,2)
+                    stddev_true_mean[p_id_index-1] += math.pow(est_mean - self.ages[p_id_index], 2)
+                    avg_val[p_id_index-1] += est_mean
             count_recogs += 1
-        
+
+        if isReturnWithoutAveraging:
+            return stddev_true_mean, estimates_mean
+
         for counter in range(0, len(estimates_mean)):
             if len(estimates_mean[counter]) > 0:
                 avg_val[counter] /= len(estimates_mean[counter])
-                stddev_true_mean[counter] = math.sqrt(stddev_true_mean[counter]/len(estimates_mean[counter]))  
+                # stddev_true_mean[counter] = math.sqrt(stddev_true_mean[counter]/len(estimates_mean[counter])  
+                stddev_true_mean[counter] = math.sqrt(stddev_true_mean[counter]/(len(estimates_mean[counter])-1))  
             for count_val in range(0, len(estimates_mean[counter])):
-                stddev_est_list[counter] += math.pow(estimates_mean[counter][count_val] - avg_val[counter], 2) + math.pow(estimates_stddev[counter][count_val],2)
+                # stddev_est_list[counter] += math.pow(estimates_mean[counter][count_val] - avg_val[counter], 2) + math.pow(estimates_stddev[counter][count_val],2)
+                stddev_est_list[counter] += math.pow(estimates_mean[counter][count_val] - avg_val[counter], 2)
             if len(estimates_mean[counter]) > 1:
-                stddev_est_list[counter] = math.sqrt(stddev_est_list[counter]/(len(estimates_mean[counter])-1))
-                
-        return stddev_true_mean, stddev_est_list
+                stddev_est_list[counter] = math.sqrt(stddev_est_list[counter]/(len(estimates_mean[counter])-1))                
         
-            
+        avg_stddev_true = sum(stddev_true_mean) / float(len(stddev_true_mean))
+        avg_stddev_est = sum(stddev_est_list) / float(len(stddev_est_list))
+        return stddev_true_mean, stddev_est_list
+
+    def getGenderDetectionRate(self, recogniser_csv_file=None, initial_recognition_file=None):
+        """
+        Get gender detection rate from recognition file. 
+        Returns: gender detection rate, female detection rate, male detection rate, number of recognition, number of female recognitions, number of male recognitions
+        """
+        if recogniser_csv_file is None:
+            recogniser_csv_file = self.recogniser_csv_file
+        if initial_recognition_file is None:
+            initial_recognition_file = self.initial_recognition_file
+
+        df_final = pandas.read_csv(recogniser_csv_file, dtype={"I": object}, usecols =["I", "G", "R", "N"], converters={"G": ast.literal_eval})
+        df_init = pandas.read_csv(initial_recognition_file, usecols =["I_est", "G", "N"], converters={"G": ast.literal_eval})
+        self.loadDB(self.db_file)        
+
+        recogs_list = df_final.values.tolist()
+        count_recogs = 0
+        overall_gender_rate = 0
+        male_recog_rate = 0
+        female_recog_rate = 0
+        female_counter = 0
+        male_counter = 0
+        while count_recogs < len(recogs_list):
+            isRegistered = not recogs_list[count_recogs][2]# False if register button is pressed (i.e. if the person starts the session for the first time)
+            numRecognition = recogs_list[count_recogs][3]
+            p_id = recogs_list[count_recogs][0]
+            p_id_index = self.i_labels.index(p_id)
+
+            if not isRegistered:
+                if self.isMultipleRecognitions:
+                    
+                    init_recog_est = df_init.loc[df_init['N'] == numRecognition].values.tolist()
+                    num_mult_recognitions = len(init_recog_est)
+                    for num_recog in range(0, num_mult_recognitions):
+                        est_gender = init_recog_est[num_recog][1][0]
+                        est_conf = init_recog_est[num_recog][1][1]
+                        if est_conf > 0: 
+                            true_gender = self.genders[p_id_index]
+                            if est_gender == true_gender:
+                                overall_gender_rate += 1
+                                if true_gender == "Female":
+                                    female_recog_rate += 1
+                                else:
+                                    male_recog_rate += 1
+                else:
+                    init_recog_est = df_init.loc[df_init['N'] == numRecognition].values.tolist()[0]
+                    est_gender = init_recog_est[1][0]
+                    est_conf = init_recog_est[1][1]
+                    if est_conf > 0: 
+                        true_gender = self.genders[p_id_index]
+                        if est_gender == true_gender:
+                            overall_gender_rate += 1
+                            if true_gender == "Female":
+                                female_recog_rate += 1
+                            else:
+                                male_recog_rate += 1
+             
+            if self.isMultipleRecognitions:
+                num_mult_recognitions = df_final.loc[df_final['N'] == numRecognition].G.count()
+
+                for num_recog in range(0, num_mult_recognitions):             
+                    est_gender = recogs_list[count_recogs][1][0]
+                    est_conf = recogs_list[count_recogs][1][1]
+                    if est_conf > 0: 
+                        true_gender = self.genders[p_id_index]
+                        if true_gender == "Female":
+                            female_counter += 1
+                        else:
+                            male_counter += 1
+
+                        if est_gender == true_gender:
+                            overall_gender_rate += 1
+                            if true_gender == "Female":
+                                female_recog_rate += 1
+                            else:
+                                male_recog_rate += 1
+                    if num_recog < num_mult_recognitions - 1:
+                        count_recogs += 1
+            else:
+                est_gender = recogs_list[count_recogs][1][0]
+                est_conf = recogs_list[count_recogs][1][1]
+                if est_conf > 0: 
+                    true_gender = self.genders[p_id_index]
+                    if true_gender == "Female":
+                        female_counter += 1
+                    else:
+                        male_counter += 1
+                    if est_gender == true_gender:
+                        overall_gender_rate += 1
+                        if true_gender == "Female":
+                            female_recog_rate += 1
+                        else:
+                            male_recog_rate += 1
+                    
+            count_recogs += 1
+        
+        overall_gender_rate /= float(count_recogs)
+        female_recog_rate /= float(female_counter)
+        male_recog_rate /= float(male_counter)
+        return overall_gender_rate, female_recog_rate, male_recog_rate, count_recogs, female_counter, male_counter
+          
     def getTimeStddev(self, recogniser_csv_file, recog_folder):
         """
         Get standard deviation of time from recognition file.
@@ -2925,7 +3061,6 @@ class RecogniserBN:
                 writer.writerow(row)
                 
         return std_dev_est
-     
 
     def getRangeVarDetectionRate(self, var_est, var_real, bin_size, stats_var, decimals=0):
         """
@@ -3834,4 +3969,4 @@ class RecogniserBN:
 if __name__ == "__main__":
 
     RB = RecogniserBN()
-
+                    
