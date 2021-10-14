@@ -2,13 +2,13 @@
 
 This repository contains the code and the libraries for open world user recognition using Multi-modal Incremental Bayesian Network, which is integrated on a Pepper robot, as described in the following papers:
 
- * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (under review), "Multi-modal Open World User Identification", ACM Transactions on Human-Robot Interaction (THRI).
+ * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (2021), "Multi-modal Open World User Identification", Transactions on Human-Robot Interaction (THRI), ACM, [DOI:10.1145/3477963](https://doi.org/10.1145/3477963).
 
- * Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, and Tony Belpaeme (2018), "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction Social Robots in the Wild workshop.
+ * Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, and Tony Belpaeme (2018), "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction [Social Robots in the Wild workshop](http://socialrobotsinthewild.org/wp-content/uploads/2018/02/HRI-SRW_2018_paper_6.pdf).
 
-[https://agrum.gitlab.io/pages/pyagrum.html](pyAgrum) library is used for implementing the Bayesian network structure in MMIBN:
+[pyAgrum](https://agrum.gitlab.io/pages/pyagrum.html) library is used for implementing the Bayesian network structure in MMIBN:
 
- * Christophe Gonzales, Lionel Torti and Pierre-Henri Wuillemin (2017), "aGrUM: a Graphical Universal Model framework", International Conference on Industrial Engineering, Other Applications of Applied Intelligent Systems, Springer, [https://doi.org/10.1007/978-3-319-60045-1_20](DOI:10.1007/978-3-319-60045-1_20)
+ * Christophe Gonzales, Lionel Torti and Pierre-Henri Wuillemin (2017), "aGrUM: a Graphical Universal Model framework", International Conference on Industrial Engineering, Other Applications of Applied Intelligent Systems, Springer, [DOI:10.1007/978-3-319-60045-1_20](https://doi.org/10.1007/978-3-319-60045-1_20).
 
 Please cite all the papers mentioned above if you are using MMIBN.
 
@@ -16,9 +16,9 @@ Please cite all the papers mentioned above if you are using MMIBN.
 
 The *RecognitionMemory.py* file contains the code for the Multi-modal Incremental Bayesian Network (MMIBN) with and without Online Learning (OL) for open world user identification. 
 
-For using online learning, use *setOnlineLearning()* function of *RecognitionMemory.py*. Update the optimised weights and quality of the estimation using *setOptimParams(isPatterned = False, isOnlineLearning=False)* function of *RecognitionMemory.py*. If the interaction will be on patterned times (e.g., 10 return visits to a rehabilitation session) use isPatterned=True, else it is False (e.g., for companion robot). If using online learning, use isOnlineLearning=True, else False.
+For using online learning, use `setOnlineLearning()` function of *RecognitionMemory.py*. Update the optimised weights and quality of the estimation using `setOptimParams(isPatterned = False, isOnlineLearning=False)` function of *RecognitionMemory.py*. If the interaction will be on patterned times (e.g., 10 return visits to a rehabilitation session) use isPatterned=True, else it is False (e.g., for companion robot). If using online learning, use isOnlineLearning=True, else False.
 
-*recognition-service* folder contains the RecognitionService that is to be uploaded on the robot (it can also be used remotely). This service is used for obtaining multi-modal information from the user: face similarity scores, gender, age, height estimations of the user through NAOqi modules (ALFaceDetection and ALPeopleDetection, NAOqi 2.4 and 2.5 - works on both NAO and Pepper). This information is used by RecogniserMemory, a multi-modal incremental Bayesian network (MMIBN) with option for online learning (likelihoods are updated with each user recognition) for reliable recognition in open-world identification. For NAOqi 2.9, see a version in branch jb/naoqi-2.9 (this version does not support saving images on tablet).
+*recognition-service* folder contains the RecognitionService that is to be uploaded on the robot (it can also be used remotely). This service is used for obtaining multi-modal information from the user: face similarity scores, gender, age, height estimations of the user through NAOqi modules (ALFaceDetection and ALPeopleDetection, NAOqi 2.4 and 2.5 - works on both NAO and Pepper). This information is used by RecogniserMemory, a multi-modal incremental Bayesian network (MMIBN) with option for online learning (likelihoods are updated with each user recognition) for reliable recognition in open-world identification. For NAOqi 2.9, see a version in branch `jb/naoqi-2.9` (this version does not support saving images on tablet).
 
 RecognitionMemory is integrated with RecognitionService which uses NAOqi to get recognition information. However, it can be integrated with other recognition software (see the comments in the code).
 
@@ -26,7 +26,7 @@ The *recognitionModule.py* contains the RecognitionModule which allows real-time
 
 *util* folder contains instructions to install libraries necessary for RecognitionMemory and the compiled libraries for NAOqi. Use README\_SHORT instructions to use the already compiled libraries provided in the folder (works for both Naoqi 2.4 and 2.5), otherwise, you can compile your libraries according to README\_FULL instructions.
 
-**NOTE:** For the first few recognitions less than *num_recog_min* (e.g. 5 in the papers) in *RecognitionMemory.py*, the user will be recognised as "unknown" to let BN build enough recognitions to provide better results and to decrease FAR. This parameter can be changed using *setNumRecogMin(minrecog)* function of *RecognitionMemory.py*, to decrease or increase the number. If instead of "unknown", the face recognition estimate of the identity is desired to be used, use *setFaceRecogEstimateForMinRecog()* function of *RecognitionMemory.py*.
+**NOTE:** For the first few recognitions less than *num_recog_min* (e.g. 5 in the papers) in *RecognitionMemory.py*, the user will be recognised as "unknown" to let BN build enough recognitions to provide better results and to decrease FAR. This parameter can be changed using `setNumRecogMin(minrecog)` function of *RecognitionMemory.py*, to decrease or increase the number. If instead of "unknown", the face recognition estimate of the identity is desired to be used, use `setFaceRecogEstimateForMinRecog()` function of *RecognitionMemory.py*.
 
 ## Installation
 
@@ -61,7 +61,7 @@ Touch the left hand of Pepper robot to start the code.
 
 ## Usage without tablet interaction for HRI in recognitionModule: "Silent" mode
 
-In line 118 in *recognitionModule.py*, set isTabletInteraction to False.
+In line 118 in *recognitionModule.py*, set *isTabletInteraction* to *False*.
 
 This mode does not need tablet interaction with the robot (i.e. the name is not requested from the user for confirmation, and the user does not enroll).
 
@@ -83,7 +83,7 @@ If the estimated recognition results would like to be used as the "true values" 
     addPersonUsingRecogValues(p_name)
 ```
 
-**addPersonUsingRecogValues SHOULD BE CALLED BEFORE confirmRecognitionSilent IFF THE PERSON IS NOT PREVIOUSLY ENROLLED**
+**`addPersonUsingRecogValues` SHOULD BE CALLED BEFORE `confirmRecognitionSilent` IFF THE PERSON IS NOT PREVIOUSLY ENROLLED**
 
 
 3. To confirm the recognition, call: 
@@ -110,7 +110,7 @@ If the estimated recognition results would like to be used as the "true values" 
 
 ## Cross-validation
 
-Use function runCrossValidation in *RecognitionMemory.py* with specified parameters for cross validation from recognition results on file, which was used for the evaluations on the Multi-modal Long-Term User Recognition Dataset. More information about the dataset and the evaluations are available in the [https://github.com/birfan/MultimodalRecognitionDataset](MultimodalRecognitionDataset) repository.
+Use function runCrossValidation in *RecognitionMemory.py* with specified parameters for cross validation from recognition results on file, which was used for the evaluations on the Multi-modal Long-Term User Recognition Dataset. More information about the dataset and the evaluations are available in the [MultimodalRecognitionDataset](https://github.com/birfan/MultimodalRecognitionDataset) repository.
 
 ## Revert to last saved state
 
@@ -131,11 +131,19 @@ Using another robot or using other identifiers for the given modalities (face, g
 
 ## License
 
-This dataset is released under GNU General Public License v3.0. A copy of this license is included with the code.
+This project is released under GNU General Public License v3.0. A copy of this license is included with the code.
+
+Cite the following if using this work:
+
+ * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (2021), "Multi-modal Open World User Identification", Transactions on Human-Robot Interaction (THRI), ACM, [DOI:10.1145/3477963](https://doi.org/10.1145/3477963).
+
+ * Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, and Tony Belpaeme (2018), "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction [Social Robots in the Wild workshop](http://socialrobotsinthewild.org/wp-content/uploads/2018/02/HRI-SRW_2018_paper_6.pdf).
+
+ * Christophe Gonzales, Lionel Torti and Pierre-Henri Wuillemin (2017), "aGrUM: a Graphical Universal Model framework", International Conference on Industrial Engineering, Other Applications of Applied Intelligent Systems, Springer, [DOI:10.1007/978-3-319-60045-1_20](https://doi.org/10.1007/978-3-319-60045-1_20).
 
 ## Contact
 
-For more details, see Irfan et al. (2018; under review). For any information, contact Bahar Irfan: bahar.irfan (at) plymouth (dot) ac (dot) uk.
+For more details, see Irfan et al. (2018, 2021). For any information, contact Bahar Irfan: bahar.irfan (at) plymouth (dot) ac (dot) uk (the most recent contact information is available at [personal website](https://www.baharirfan.com)).
 
 ## Acknowledgments
 

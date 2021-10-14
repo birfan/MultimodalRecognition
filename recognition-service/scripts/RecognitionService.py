@@ -12,6 +12,10 @@
 #  (evidence based updating of likelihoods) for reliable recognition in open-world identification.       #
 #                                                                                                        #
 #  Please cite the following work if using this code:                                                    #
+#                                                                                                        #
+#    B. Irfan, M. Garcia Ortiz, N. Lyubova, and T. Belpaeme (2021), "Multi-modal Open World User         #
+#    Identification", Transactions on Human-Robot Interaction (THRI), ACM.                               #
+#                                                                                                        #
 #    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), 'Multi-modal Open-Set Person         #
 #    Identification in HRI', 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
 #    Robots in the Wild workshop.                                                                        #

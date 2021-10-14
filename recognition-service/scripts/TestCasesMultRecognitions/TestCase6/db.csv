@@ -1,7 +1,0 @@
-id,name,gender,age,height,times
-1,Daniel Hernandez,Male,33,170,"[['18:26:23', 1, 5, 6, 2017]]"
-2,Bahar Irfan,Female,26,175,"[['18:37:01', 1, 5, 6, 2017]]"
-3,Chris Wallbridge,Male,28,185,"[['19:49:40', 1, 5, 6, 2017]]"
-4,Anne Hathaway,Female,34,186,"[['20:32:57', 1, 5, 6, 2017]]"
-5,Tony Belpaeme,Male,44,187,"[['14:08:56', 2, 6, 6, 2017]]"
-6,David Boreanaz,Male,48,185,"[['17:39:03', 1, 12, 6, 2017]]"

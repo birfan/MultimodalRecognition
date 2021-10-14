@@ -4,7 +4,7 @@
   <name lang="en_US">recognition-service</name>
  </names>
  <descriptions>
-  <description lang="en_US">Demo of face, age, gender and height recognition</description>
+  <description lang="en_US">Multi-modal user recognition using NAOqi modules: face, age, gender and height</description>
  </descriptions>
  <supportedLanguages>
   <language>en_US</language>

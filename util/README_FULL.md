@@ -1,14 +1,11 @@
-# Instructions on how to make RecognitionMemory work on Nao/Pepper:
+# Instructions to Install RecognitionMemory on NAO and Pepper Robots
 
 Example path\_to\_folder: /home/nao/dev/lib/
 
 ## NAOqi FOR OpenNAO:
 
 
-*   Download OpenNAO OS VirtualBox and C++ NAOqi cross toolchain for Linux 32 from Software (OR use the libnaoqi_files folder provided instead of the toolchain) in 
-
-
-    http://community.aldebaran.com
+*   Download OpenNAO OS VirtualBox and C++ NAOqi cross toolchain for Linux 32 from Software (OR use the libnaoqi_files folder provided instead of the toolchain) in `https://www.softbankrobotics.com/` (Choose country, then choose Support, and the robot. Find the software under Downloads.)
 
 
 *   Setup OpenNAO using VirtualBox
@@ -202,4 +199,18 @@ On robot:
 
 **NOTE: THE COMPILED VERSION OF PANDAS, PYTZ AND PYAGRUM IS IN UTIL FOLDER. The folders are compiled for NAOqi "2.5.5.5" which has numpy version "1.8.1", pandas version "0.20.1", pytz version "2017.2", pyAgrum version "0.11.2.9".**
 
+## License
 
+This project is released under GNU General Public License v3.0. A copy of this license is included with the code.
+
+Cite the following if using this work:
+
+ * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (2021), "Multi-modal Open World User Identification", Transactions on Human-Robot Interaction (THRI), ACM, [DOI:10.1145/3477963](https://doi.org/10.1145/3477963).
+
+ * Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, and Tony Belpaeme (2018), "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction [Social Robots in the Wild workshop](http://socialrobotsinthewild.org/wp-content/uploads/2018/02/HRI-SRW_2018_paper_6.pdf).
+
+ * Christophe Gonzales, Lionel Torti and Pierre-Henri Wuillemin (2017), "aGrUM: a Graphical Universal Model framework", International Conference on Industrial Engineering, Other Applications of Applied Intelligent Systems, Springer, [DOI:10.1007/978-3-319-60045-1_20](https://doi.org/10.1007/978-3-319-60045-1_20).
+
+## Contact
+
+For more details, see Irfan et al. (2018, 2021). For any information, contact Bahar Irfan: bahar.irfan (at) plymouth (dot) ac (dot) uk (the most recent contact information is available at [personal website](https://www.baharirfan.com)).

@@ -8,8 +8,12 @@
 #  This script allows to run the RecognitionMemory using Multi-Modal Incremental Bayesian Network        #
 #  (MMIBN) for person recognition on Pepper robot (Naoqi 2.4 and 2.5).                                   #
 #                                                                                                        #
-#  This is the script used for collecting the user study dataset in Plymouth University                  # 
-#  presented in the paper, please cite the paper if using this code:                                     #
+#  This is the script used for collecting the user study dataset in Plymouth University. Please cite     #
+#  the following if using this work:                                                                     #
+#                                                                                                        #
+#    B. Irfan, M. Garcia Ortiz, N. Lyubova, and T. Belpaeme (2021), "Multi-modal Open World User         #
+#    Identification", Transactions on Human-Robot Interaction (THRI), ACM.                               #
+#                                                                                                        #
 #    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), 'Multi-modal Open-Set Person         #
 #    Identification in HRI', 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
 #    Robots in the Wild workshop.                                                                        #
