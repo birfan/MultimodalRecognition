@@ -13,18 +13,20 @@
 #  Please cite the following work if using this code:                                                    #
 #                                                                                                        #
 #    B. Irfan, M. Garcia Ortiz, N. Lyubova, and T. Belpaeme (2021), "Multi-modal Open World User         #
-#    Identification", Transactions on Human-Robot Interaction (THRI), ACM.                               #
+#    Identification", Transactions on Human-Robot Interaction (THRI), 11 (1), ACM.                       #
 #                                                                                                        #
-#    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), 'Multi-modal Open-Set Person         #
-#    Identification in HRI', 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
+#    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), "Multi-modal Open-Set Person         #
+#    Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
 #    Robots in the Wild workshop.                                                                        #
 #                                                                                                        #
 #  The pyAgrum library is used for implementing the Bayesian network structure:                          #
-#    Gonzales, Christophe and Torti, Lionel and Wuillemin, Pierre-Henri (2017), 'aGrUM: a Graphical      #
-#    Universal Model framework', Proceedings of the 30th International Conference on Industrial          #
+#    Gonzales, Christophe and Torti, Lionel and Wuillemin, Pierre-Henri (2017), "aGrUM: a Graphical      #
+#    Universal Model framework", Proceedings of the 30th International Conference on Industrial          #
 #    Engineering, Other Applications of Applied Intelligent Systems.                                     #
 #                                                                                                        #                      
-#  RecognitionMemory and each script in this project is under the GNU General Public License.            #
+#  RecognitionMemory and each script in this project is under the GNU General Public License v3.0. You   #
+#  should have received a copy of the license along with MultimodalRecognition. If not, see              #
+#  <http://www.gnu.org/licenses>.                                                                        #    
 #========================================================================================================#
 
 import pyAgrum as gum
@@ -150,7 +152,7 @@ class RecogniserBN:
         # self.quality_threshold = 0.013 for MMIBN on Nall_gaussianT
         # self.quality_threshold = 0.028 for MMIBN-OL on Nall_gaussianT
 
-        self.weights = [1.0, 0.044, 0.538, 0.136, 0.906] # [face_weight, gender_weight, age_weight, height_weight, time_weight] (optimised weights for hybrid normalisation with no online learning (non-adaptive likelihoods, MMIBN) on Multi-modal Long-Term User Recognition Dataset (Irfan et al., under review) with Nall_uniformT -uniform time)
+        self.weights = [1.0, 0.044, 0.538, 0.136, 0.906] # [face_weight, gender_weight, age_weight, height_weight, time_weight] (optimised weights for hybrid normalisation with no online learning (non-adaptive likelihoods, MMIBN) on Multi-modal Long-Term User Recognition Dataset (Irfan et al., 2021) with Nall_uniformT -uniform time)
         # self.weights = [1.0, 0.35, 0.72, 0.03, 0.63] # for uniform time of interactions with online learning (for MMIBN-OL, set self.isOnlineLearning to True !)
         # self.weights = [1.0, 0.19, 0.589, 0.15, 0.34] # for patterned time of interactions with non-adaptive likelihoods (MMIBN on Multi-modal Long-Term User Recognition Dataset with Nall_gaussianT -Gaussian time))
         # self.weights = [1.0, 0.634, 0.534, 0.169, 0.346] # for patterned time of interactions with online learning (for MMIBN-OL, set self.isOnlineLearning to True !)

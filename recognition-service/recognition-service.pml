@@ -27,10 +27,11 @@
         <File name="input_text" src="html/css/input_text.css" />
         <File name="radio_button" src="html/css/radio_button.css" />
         <File name="checkbox" src="html/css/checkbox.css" />
-        <File name="ReadMe" src="README-RecognitionService.md" />
-        <File name="libfacedetection_2_4_2_25_nao" src="libfacedetection_2_4_2_25_nao.so" />
+        <File name="ReadMe" src="README.md" />
+        <File name="LICENSE" src="LICENSE" />
     </Resources>
     <Topics />
+    <IgnoredPaths />
     <Translations auto-fill="en_US">
         <Translation name="translation_en_US" src="translations/translation_en_US.ts" language="en_US" />
         <Translation name="translation_es_ES" src="translations/translation_es_ES.ts" language="es_ES" />

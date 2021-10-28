@@ -1,8 +1,8 @@
-# Recognition Service Installation Instructions
+# Recognition Service for NAO and Pepper Robots: Installation Instructions
 
 **Note that RecognitionService only works with NAOqi 2.4 and 2.5 libraries provided in the util folder.**
 
-# On PC:
+### On PC:
 
 RecognitionService should be uploaded to the robot through Choregraphe:
 
@@ -20,11 +20,12 @@ RecognitionService should be uploaded to the robot through Choregraphe:
 
 * Add the library libfacedetection\_2\_5\_2\_44\_pepper.so (or the version for your robot) under the same folder.
 
-# On the robot:
+### On the Robot:
 
 * Modify autoload.ini file in the robot /home/nao/naoqi/preferences/ and under the [python] line, add the path to this python file.
 
 **Example:**
+
 ```
 ...
 [python]
@@ -35,7 +36,7 @@ RecognitionService should be uploaded to the robot through Choregraphe:
 
 This will exit the current face detection library and load the custom library at startup.
 
-# On PC:
+### On PC:
 
 Connect to the robot and clear the face recognition database:
 
@@ -51,7 +52,7 @@ This project is released under GNU General Public License v3.0. A copy of this l
 
 Cite the following if using this work:
 
- * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (2021), "Multi-modal Open World User Identification", Transactions on Human-Robot Interaction (THRI), ACM, [DOI:10.1145/3477963](https://doi.org/10.1145/3477963).
+ * Bahar Irfan, Michael Garcia Ortiz, Natalia Lyubova, and Tony Belpaeme (2021), "Multi-modal Open World User Identification", Transactions on Human-Robot Interaction (THRI), 11 (1), ACM, [DOI:10.1145/3477963](https://doi.org/10.1145/3477963).
 
  * Bahar Irfan, Natalia Lyubova, Michael Garcia Ortiz, and Tony Belpaeme (2018), "Multi-modal Open-Set Person Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction [Social Robots in the Wild workshop](http://socialrobotsinthewild.org/wp-content/uploads/2018/02/HRI-SRW_2018_paper_6.pdf).
 

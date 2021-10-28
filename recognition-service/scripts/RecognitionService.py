@@ -14,14 +14,15 @@
 #  Please cite the following work if using this code:                                                    #
 #                                                                                                        #
 #    B. Irfan, M. Garcia Ortiz, N. Lyubova, and T. Belpaeme (2021), "Multi-modal Open World User         #
-#    Identification", Transactions on Human-Robot Interaction (THRI), ACM.                               #
+#    Identification", Transactions on Human-Robot Interaction (THRI), 11 (1), ACM.                       #
 #                                                                                                        #
-#    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), 'Multi-modal Open-Set Person         #
-#    Identification in HRI', 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
+#    B. Irfan, N. Lyubova, M. Garcia Ortiz, and T. Belpaeme (2018), "Multi-modal Open-Set Person         #
+#    Identification in HRI", 2018 ACM/IEEE International Conference on Human-Robot Interaction Social    #
 #    Robots in the Wild workshop.                                                                        #
 #                                                                                                        #                 
 #  RecognitionService, RecognitionMemory and each script in this project is under the GNU General Public #
-#  License.                                                                                              #
+#  License v3.0. You should have received a copy of the license along with RecognitionService. If not,   #
+#  see <http://www.gnu.org/licenses/>.                                                                   #
 #========================================================================================================#
 
 import qi
